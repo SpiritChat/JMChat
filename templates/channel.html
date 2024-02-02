@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Канал {{ channel.name }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/ChannelStyle.css">
+</head>
+<body>
+<h1>Канал {{ channel.name }}</h1>
+<p>Владелец канала: {{ channel.owner_phone_number }}</p>
+
+{% if is_owner %}
+    <!-- Ссылка на страницу подписчиков -->
+    <a href="/channels/{{ channel.id }}/subscribers">{{ subscribers_count }} подписчиков</a>
+{% else %}
+    <!-- Только отображение числа подписчиков -->
+    <p>{{ subscribers_count }} подписчиков</p>
+{% endif %}
+
+{% for message in messages %}
+    <div>
+        <h4>{{ message.sender_phone_number }}</h4>
+        <p>{{ message.message }}</p>
+        <!-- Время отправки сообщения -->
+        <p>Сообщение отправлено: <span class="utc-time">{{ message.timestamp }}</span></p>
+        {% if message.file_name is not none %} <!-- Если есть имя файла, отображаем ссылку на файл -->
+            <p>Прикрепленный файл: <a href="/files/{{ message.file_id }}" target="_blank">{{ message.file_name }}</a></p>
+        {% endif %}
+        <!-- Кнопка удаления сообщения -->
+        {% if current_user.phone_number == channel.owner_phone_number %}
+        <form action="/channels/{{channel.id}}/delete_message/{{message.id}}" method="post">
+            <input type="submit" value="Удалить сообщение">
+        </form>
+        {% endif %}
+    </div>
+{% endfor %}
+<!-- Форма отправки сообщений отображается только если текущий пользователь является владельцем канала -->
+{% if channel.owner_phone_number == current_user.phone_number %}
+<form action="/channels/{{ channel.id }}/send_message" method="post" enctype="multipart/form-data">
+    <label for="message_text">Сообщение:</label>
+    <input type="text" id="message_text" name="message_text" required>
+    <label for="file">Прикрепить файл:</label> <!-- Поле для загрузки файла -->
+    <input type="file" id="file" name="file">
+    <input type="submit" value="Отправить сообщение">
+</form>
+{% endif %}
+<form action="/channels/{{ channel.id }}/leave" method="post">
+    <input type="submit" value="Покинуть канал">
+</form>
+
+<!-- Добавлена кнопка для удаления канала. Отображается только если текущий пользователь является владельцем -->
+{% if channel.owner_phone_number == current_user.phone_number %}
+<form action="/channels/{{ channel.id }}/delete" method="post">
+    <input type="submit" value="Удалить канал">
+</form>
+{% endif %}
+<button onclick="location.href='/home'">Вернуться назад</button>
+
+<script>
+// Функция для преобразования UTC в местное время
+function convertUTCToLocalTime(utcTime) {
+    var localTime = new Date(utcTime).toLocaleString();
+    return localTime;
+}
+
+// Находим все элементы с классом utc-time и преобразуем их время в местное
+var timeElements = document.getElementsByClassName("utc-time");
+for (var i = 0; i < timeElements.length; i++) {
+    timeElements[i].innerHTML = convertUTCToLocalTime(timeElements[i].innerHTML);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Contact Page</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: rgba(211, 211, 211, 0.2);
+            font-family: Times New Roman, sans-serif;
+        }
+
+        .nickname {
+            font-family: Roboto;
+            font-size: 20px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 22px;
+        }
+
+        .status {
+            font-family: Roboto;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            color: #928F8F;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .search-icons img {
+            margin-right: 16px;
+            width: 30px;
+            height: 30px;
+        }
+
+        #myImage {
+            cursor: pointer;
+        }
+
+        .button {
+            display: flex;
+            height: 53px;
+            padding: 0px 24px;
+            justify-content: center;
+            align-items: center;
+            align-self: stretch;
+            background-color: #2A88B9;
+            border-radius: 6px;
+        }
+
+        .button:disabled {
+            background-color: #2A88B9; /* Цвет фона для disabled кнопки */
+        }
+
+        .button:hover,
+        .button:focus,
+        .button:active {
+            color: white;
+            background-color: #2A88B9;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 500px; top: 85px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalLabel">Новый контакт</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть" id="closeModal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="nickname" placeholder="Никнейм" required>
+                        <p style="color: #2A88B9; font-size: 12px; display: none" id="user_found"> Пользователь
+                            найден </p>
+                        <p style="color: #2A88B9; font-size: 12px; display: none" id="user_not_found"> Пользователя не
+                            существует </p>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="fullname" placeholder="ФИО">
+                    </div>
+                </form>
+
+                <button type="button" class="btn btn-primary button" id="addButton" disabled>Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 500px; top: 85px;">
+        <div class="modal-content">
+            <div class="modal-header" style="vertical-align: center">
+                <h5 class="modal-title" id="myModalLabel">Изменение контакта</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть" id="closeEditModal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="editNickname" placeholder="Никнейм" readonly>
+                        <p style="color: #2A88B9; font-size: 12px;" id="user_found"> Пользователь
+                            найден </p>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="editFullname" placeholder="ФИО">
+                    </div>
+                </form>
+
+                <button type="button" class="btn btn-primary button" id="editButton">Изменить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <div style="margin-left: 15px; margin-top: 5px">
+        <a style="text-decoration: none; display: inline-block; vertical-align: middle;" href="/home"> <img
+                src="../static/black_back_arrow.png" alt="Картинка" style="vertical-align: middle;"> </a>
+        <h2 style="display: inline-block; margin: 10px 10px 10px;vertical-align: middle;">Контакты</h2>
+    </div>
+    <hr style="width: 500px; margin-right: 15px; height: 1px">
+    <div class="search-container" style="padding-left: 15px; padding-right: 15px">
+        <form onsubmit="search(event)" class="search-input" id="search-input">
+            <input type="text" class="form-control search-input"
+                   style="background-color: #EBEBEB; color: #928F8F; border-radius: 8px; font-size: 12px;"
+                   placeholder="Поиск" oninput="search(event)">
+        </form>
+        <img src="../static/active_users.svg" alt="User Icon">
+        <img src="../static/plus.svg" alt="Email Icon" id="myImage">
+    </div>
+
+    <div id="search-results" style="margin-left: 15px; margin-right: 15px"></div>
+
+    <div id="contacts-container" style="margin-left: 15px; margin-right: 15px">
+        {% for user in contacts %}
+            <small id="current-user-nickname" style="display: none">{{ user.current_user_nickname }}</small>
+            {% if user.show %}
+                <div class="row mb-1 mt-1">
+                    <div class="col-md-2">
+                        <img id="profile-image" src="/get/{{ user.id }}/profile_picture/" alt="Ваше изображение"
+                             class="rounded-circle mt-2" width="60" height="60">
+                    </div>
+                    <div class="col-md-10" style="padding: 0">
+                        <div class="card-body" style="display: flex; align-items: center;">
+                            <div>
+                                <a href="/profile/{{ user.nickname }}" style="text-decoration: none">
+                                    <h5 class="card-title nickname mb-1" id="user_nickname_{{ user.nickname }}"
+                                        style="color: black">{{ user.fio }}</h5>
+                                </a>
+                                {% if user.status_visibility %}
+                                    <p class="card-text status">{{ user.status }}</p>
+                                {% endif %}
+                            </div>
+                            <img src="../static/Edit.png" alt="edit" width="15" height="15"
+                                 id="editImage_{{ user.nickname }}_{{ user.fio }}"
+                                 style="cursor: pointer; margin-left: auto;">
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-1">
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    function search(event) {
+        event.preventDefault();
+
+        // Получаем значение введенного текста
+        var query = document.querySelector('.search-input input').value;
+
+        // Отправляем запрос на бэкенд
+        fetch('/search-contacts?query=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                var contactsContainer = document.getElementById('contacts-container');
+                contactsContainer.innerHTML = ""
+
+                // Получаем контейнер для результатов
+                var resultsContainer = document.getElementById('search-results');
+                resultsContainer.innerHTML = ""; // Очищаем предыдущие результаты
+
+                if (data.results.length > 0) {
+                    // Добавляем новые результаты
+                    data.results.forEach(result => {
+                        // Создаем элемент для каждого результата
+                        var resultItem = document.createElement('div');
+                        resultItem.classList.add("row", "mb-1", "mt-1");
+
+                        var col1 = document.createElement('div');
+                        col1.classList.add("col-md-2");
+                        col1.innerHTML = `
+                        <img id="profile-image" src="/get/${result.id}/profile_picture/" alt="Изображение профиля"
+                             class="rounded-circle mt-2" width="60" height="60">
+                    `;
+                        resultItem.appendChild(col1);
+
+                        var col2 = document.createElement('div');
+                        col2.classList.add("col-md-10");
+                        col2.style.padding = "0";
+
+                        var cardBody = document.createElement('div');
+                        cardBody.classList.add("card-body");
+                        cardBody.style.display = "flex";
+                        cardBody.style.alignItems = "center";
+
+                        var userInfo = document.createElement('div');
+                        userInfo.innerHTML = `
+                        <a href="/profile/${result.nickname}" style="text-decoration: none">
+                            <h5 class="card-title nickname mb-1" id="user_nickname_${result.nickname}" style="color: black">${result.fio}</h5>
+                        </a>
+                        ${result.status_visibility ? `<p class="card-text status">${result.status}</p>` : ""}
+                    `;
+                        cardBody.appendChild(userInfo);
+
+                        var editImage = document.createElement('img');
+                        editImage.src = "../static/Edit.png";
+                        editImage.alt = "edit";
+                        editImage.width = "15";
+                        editImage.height = "15";
+                        editImage.id = `editImage_${result.nickname}_${result.fio}`;
+                        editImage.style.cursor = "pointer";
+                        editImage.style.marginLeft = "auto";
+
+                        cardBody.appendChild(editImage);
+                        col2.appendChild(cardBody);
+                        resultItem.appendChild(col2);
+
+                        resultsContainer.appendChild(resultItem);
+
+                        // Добавляем горизонтальную линию
+                        var hr = document.createElement('hr');
+                        hr.classList.add("my-1");
+                        resultsContainer.appendChild(hr);
+                    });
+                } else {
+                    // Добавляем надпись "Ничего не найдено"
+                    var noResultsMessage = document.createElement('p');
+                    noResultsMessage.innerText = "Ничего не найдено";
+                    resultsContainer.appendChild(noResultsMessage);
+                }
+
+                // Добавим <br> в конце
+                var lineBreak = document.createElement('br');
+                resultsContainer.appendChild(lineBreak);
+            })
+            .catch(error => console.error('Ошибка при отправке запроса на бэкенд', error));
+    }
+
+    document.getElementById('myImage').addEventListener('click', function () {
+        $('#myModal').modal('show');
+    });
+
+    document.getElementById('closeModal').addEventListener('click', function () {
+        $('#myModal').modal('hide');
+    });
+
+    document.getElementById('closeEditModal').addEventListener('click', function () {
+        $('#editModal').modal('hide');
+    });
+
+    document.getElementById('search-results').addEventListener('click', function (event) {
+        // Проверяем, что клик был на элементе с id, начинающимся на "editImage_"
+        if (event.target.id && event.target.id.startsWith('editImage_')) {
+            console.log(event.target);
+            var imageId = event.target.id;
+            var nickname = imageId.split('_')[1];
+            var fio = imageId.split('_')[2];
+            $('#editModal').modal('show');
+            document.getElementById('editNickname').value = nickname;
+            document.getElementById('editFullname').value = fio;
+        }
+    });
+
+    $(document).ready(function () {
+        var $nicknameInput = $("#nickname");
+        var $editNicknameInput = $("#editNickname");
+        var $addButton = $("#addButton");
+        var $editButton = $("#editButton");
+        var timeoutId;
+
+        $('[id^="editImage_"]').on('click', function () {
+            console.log($(this))
+            var imageId = $(this).attr('id');
+            var nickname = imageId.split('_')[1];
+            var fio = imageId.split('_')[2];
+            $('#editModal').modal('show');
+            document.getElementById('editNickname').value = nickname;
+            document.getElementById('editFullname').value = fio;
+        });
+
+        $nicknameInput.on("input", function () {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(function () {
+                var nickname = $nicknameInput.val();
+                var fioInput = $("#fullname").val();
+                var currentUserName = document.getElementById("current-user-nickname").textContent;
+
+                $.ajax({
+                    type: "POST",
+                    url: "/check-contacts",
+                    data: JSON.stringify({nickname: nickname, fio: fioInput, my_nickname: currentUserName}),
+                    contentType: "application/json",
+                    success: function (response) {
+                        if (response.received_nickname === "null") {
+                            $("#user_not_found").show();
+                            $("#user_found").hide();
+                            $("#addButton").prop("disabled", true);
+                        } else {
+                            $("#user_found").show();
+                            $("#user_not_found").hide();
+                            $("#addButton").prop("disabled", false);
+                        }
+                    },
+                    error: function (error) {
+                        console.error("Произошла ошибка:", error);
+                    }
+                });
+            }, 300);
+        });
+
+        $addButton.on("click", function () {
+            var nickname = $nicknameInput.val();
+            var fioInput = $("#fullname").val();
+            var currentUserName = document.getElementById("current-user-nickname").textContent;
+
+            $.ajax({
+                type: "POST",
+                url: "/add-contacts", // Замените на URL вашего сервера
+                data: JSON.stringify({nickname: nickname, fio: fioInput, my_nickname: currentUserName}),
+                contentType: "application/json",
+                success: function (response) {
+                    document.getElementById("nickname").value = '';
+                    document.getElementById("fullname").value = '';
+                    $("#user_not_found").hide();
+                    $("#user_found").hide();
+
+                    if (response.status === "200") {
+                        var newContact = '<div class="row mb-1 mt-1">' +
+                            '<div class="col-md-2">' +
+                            '<img id="profile-image" src="/get/' + response.id + '/profile_picture/" alt="Ваше изображение" class="rounded-circle mt-2" width="60" height="60">' +
+                            '</div>' +
+                            '<div class="col-md-8">' +
+                            '<div class="card-body">' +
+                            '<h5 class="card-title nickname mb-1" id="user_nickname_' + response.nickname + '">' + response.fio + '</h5>';
+
+                        if (response.status_visibility) {
+                            newContact += '<p class="card-text status">' + response.user_status + '</p>';
+                        }
+
+                        newContact += '</div>' +
+                            '</div>' +
+                            '<div style="text-align: right; vertical-align: bottom">' +
+                            '<img src="../static/Edit.png" alt="edit" width="15" height="15" id="editImage_' + response.nickname + '" style="cursor: pointer;">' +
+                            '</div>' +
+                            '</div>' +
+                            '<small id="current-user-nickname" style="display: none">' + response.current_user_nickname + '</small>' +
+                            '<hr class="my-1">';
+
+                        $("#contacts-container").append(newContact);
+                        $("#editImage_" + response.nickname).on("click", function () {
+                            var imageId = $(this).attr('id');
+                            var nickname = imageId.split('_')[1];
+                            $('#editModal').modal('show');
+                            document.getElementById('editNickname').value = nickname;
+                        });
+                    }
+                    $('#myModal').modal('hide');
+                },
+                error: function (error) {
+
+                }
+            });
+        });
+
+        $editButton.on("click", function () {
+            var nickname = $editNicknameInput.val();
+            var fioInput = $("#editFullname").val();
+            var currentUserName = document.getElementById("current-user-nickname").textContent;
+
+            $.ajax({
+                type: "POST",
+                url: "/edit-contacts", // Замените на URL вашего сервера
+                data: JSON.stringify({nickname: nickname, fio: fioInput, my_nickname: currentUserName}),
+                contentType: "application/json",
+                success: function (response) {
+                    document.getElementById("editFullname").value = '';
+                    document.getElementById("user_nickname_" + nickname).innerHTML = response.nickname;
+                    $('#editModal').modal('hide');
+                },
+                error: function (error) {
+
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

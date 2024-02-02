@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Участники канала {{ channel.name }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/ChannelStyle.css">
+</head>
+<body>
+    <div id="container">
+        <h1>Участники канала {{ channel.name }}</h1>
+        <!-- Ссылка на страницу канала -->
+        <a href="/channels/{{ channel.id }}">Вернуться в канал</a>
+
+        <!-- Список подписчиков -->
+        <ul>
+            {% for subscriber in subscribers %}
+                <li>
+                    <!-- Теперь мы отображаем имя и номер телефона подписчика -->
+                    {% if subscriber.phone_number == channel.owner_phone_number %}
+                        <strong>Владелец: {{ subscriber.first_name }} {{ subscriber.last_name }} - {{ subscriber.phone_number }}</strong>
+                    {% else %}
+                        {{ subscriber.first_name }} {{ subscriber.last_name }} - {{ subscriber.phone_number }}
+                    {% endif %}
+
+                    <!-- Кнопка удаления подписчика -->
+                    {% if current_user.is_admin or current_user.phone_number == channel.owner_phone_number %}
+                        <form action="/channels/{{ channel.id }}/subscribers/{{ subscriber.phone_number }}/remove" method="post">
+                            <button type="submit">Удалить подписчика</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Форма поиска -->
+        <form action="/channels/{{ channel.id }}/subscribers" method="get">
+            <input type="text" id="search_user" name="search_user" placeholder="Поиск по имени, фамилии, никнейму, номеру телефона...">
+            <input type="submit" value="Поиск">
+        </form>
+
+
+        <!-- Результаты поиска -->
+        {% if search_results is defined %}
+            <ul>
+                {% for user in search_results %}
+                    <li>
+                        <!-- Также отображаем имя и номер телефона для результатов поиска -->
+                        {{ user.first_name }} {{ user.last_name }} - {{ user.phone_number }}
+                        <!-- Форма добавления пользователя в чат -->
+                        <form action="/channels/{{ channel.id }}/subscribers/{{ user.phone_number }}/add" method="post">
+                            <button type="submit">Добавить в канал</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </div>
+</body>
+</html>

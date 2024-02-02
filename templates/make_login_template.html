@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>JMChat Make Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../static/registration.css">
+</head>
+<body>
+<div class="container mt-5">
+    <div style="height: 60px"></div>
+    <a style="text-decoration: none;" href="#" onclick="submitForm()" class="back">
+        <p class="back"><img src="../static/back-arrow.png" style="align-self: center" alt="Картинка"> Назад </p>
+    </a>
+    <img src="../profile_pictures/logo_jm.png" alt="Картинка" width="540" height="170">
+    <br>
+    <h4 class="headline">Ура! Осталось немного</h4>
+    <p class="under_headline">Придумайте никнейм. Никнейм - это ваше индивидуальное имя пользователя.</p>
+    <div class="small_gap"></div>
+    <form method="post" action="/complete-register" id="form" style="width: 540px">
+        <div class="form-group">
+            <input type="text" id="nickname" name="nickname" class="form-control" placeholder="Никнейм" required>
+            <p id="nicknameError" style="color: #2A88B9; font-size: 12px; display: none; margin-bottom: 0">Этот никнейм
+                уже занят</p>
+        </div>
+        <div class="small_gap"></div>
+        <div class="form-group">
+            <input type="password" id="password" name="password" class="form-control" placeholder="Пароль" required>
+            <input type="text" class="form-control" id="email" name="email" value="{{ email }}" style="display: None">
+        </div>
+        <br>
+        <button type="submit" class="btn btn-primary button" id="loginButton" disabled>Зарегистрироваться</button>
+    </form>
+    <p class="unstyled-list"> Ваш пароль должен содержать </p>
+    <ul class="unstyled-list">
+        <li class="list-item">Латинские буквы</li>
+        <li class="list-item">Минимум 8 символов</li>
+        <li class="list-item">Минимум 1 заглавную букву</li>
+        <li class="list-item">Минимум 1 прописную букву</li>
+        <li class="list-item">Минимум 1 цифру</li>
+        <li class="list-item">Минимум 1 символ</li>
+    </ul>
+</div>
+</body>
+<script>
+    function submitForm() {
+        var form = document.createElement("form");
+        form.setAttribute("method", "POST");
+        form.setAttribute("action", "/registration");
+
+        var input = document.createElement("input");
+        input.setAttribute("type", "hidden");
+        input.setAttribute("name", "dummyData"); // Добавьте любые данные, если нужно
+        input.setAttribute("value", "dummyValue");
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    var passwordInput = document.getElementById("password");
+    var loginButton = document.getElementById("loginButton");
+    var passwordError = document.getElementById("passwordError");
+    var nicknameInput = document.getElementById("nickname");
+
+    passwordInput.addEventListener("input", function () {
+        var password = passwordInput.value;
+        var lowerCaseRegex = /[a-z]/;
+        var upperCaseRegex = /[A-Z]/;
+        var digitRegex = /[0-9]/;
+        var specialCharRegex = /[!@#\$%\^&\*\(\)_\+=\[\]\;:'"<>,.?\\-]/;
+
+        if (
+            lowerCaseRegex.test(password) &&
+            upperCaseRegex.test(password) &&
+            digitRegex.test(password) &&
+            specialCharRegex.test(password) &&
+            password.length >= 8
+        ) {
+            loginButton.removeAttribute("disabled");
+            passwordError.style.display = "none";
+        } else {
+            loginButton.setAttribute("disabled", "disabled");
+            passwordError.style.display = "block";
+        }
+    });
+
+    var form = document.getElementById("form");
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var nickname = nicknameInput.value;
+
+        fetch("/check-login", {
+            method: "POST",
+            body: new URLSearchParams({
+                nickname: nickname
+            }),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+            .then(response => {
+                console.log(response);
+                if (response.ok) {
+                    form.submit();
+                } else {
+                    nicknameError.style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+            });
+    });
+</script>
+</html>

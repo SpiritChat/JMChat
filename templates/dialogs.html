@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Диалог</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        /*Устанавливает фон всей страницы на светло-серый и задает основной шрифт*/
+        body {
+            background-color: rgba(211, 211, 211, 0.2);
+            font-family: Roboto;
+        }
+
+        /*Задает высоту основного контейнера страницы.*/
+        .container {
+            height: 100%;
+        }
+
+        /*Устанавливает высоту контейнера сообщений и делает его прокручиваемым по вертикали.*/
+        .messages-container {
+            height: calc(85vh - 100px);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            display: none; /* для Chrome, Safari и Opera */
+        }
+
+        /*Стилизует информацию о собеседнике, делая фон белым и округляя углы.*/
+        .interlocutor-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        /*Применяет стиль к изображению собеседника, делая его круглым.*/
+        .interlocutor-info img {
+            border-radius: 50%;
+        }
+
+        /*Добавляет отступ слева от деталей собеседника.*/
+        .interlocutor-details {
+            margin-left: 10px;
+        }
+
+        /* Оформляет каждое сообщение, выравнивая его слева. */
+        .message-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        /* Устанавливает фон, отступы и скругление углов для блока содержимого каждого сообщения. */
+        .message-item .message-content {
+            position: relative;
+            background-color: rgba(42, 136, 185, 0.1);
+            color: black;
+            padding: 10px;
+            border-radius: 10px;
+            margin-right: 30px; /* Добавлено место для иконки выпадающего меню */
+            overflow: visible; /* Позволяет выпадающему списку выходить за границы контейнера */
+        }
+
+        /*Определяет стиль для сообщений, отправленных пользователем, с зеленым фоном и белым текстом.*/
+        .message-item.user .message-content {
+            background-color: #2A88B9;
+            color: white;
+            margin: 5px;
+            justify-content: flex-end;
+        }
+
+        .message-item h4,
+        .message-item p,
+        .message-item small {
+            display: block;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .message-self {
+            text-align: left; /* Изменение выравнивания текста на левое */
+            background-color: #2A88B9;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            padding: 10px;
+            margin-left: auto;
+        }
+
+        .message-item.user {
+            justify-content: flex-end;
+        }
+
+        /*Стилизует выпадающее меню для сообщений, делая его абсолютно позиционированным.*/
+        .message-dropdown {
+            position: absolute;
+            top: 5px;
+            right: -1px; /* Сдвиньте иконку вправо за пределы контейнера */
+            z-index: 2;
+            visibility: hidden; /* Скройте выпадающий список по умолчанию */
+        }
+
+
+        /*Задает размеры иконки опций сообщения.*/
+        .message-options-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /*Скрывает выпадающее меню и стилизует его при отображении.*/
+        .message-options {
+            display: none;
+            position: absolute;
+            right: 20px; /* Изменено положение, чтобы учесть размер иконки */
+            top: 0; /* Расположение непосредственно у иконки */
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 1000;
+            padding: 5px 0;
+        }
+
+        /*Отображает выпадающее меню при наведении на иконку.*/
+        .message-item:hover .message-dropdown {
+            visibility: visible; /* Показать выпадающий список при наведении на контейнер сообщения */
+        }
+
+        /* Отображает выпадающее меню при наведении на контейнер сообщения. */
+        .message-item .message-content:hover .message-dropdown {
+            visibility: visible;
+        }
+
+        /*Стилизует кнопки в выпадающем меню.*/
+        .message-options button {
+            background-color: transparent;
+            border: none;
+            width: 100%;
+            padding: 5px 10px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        /*Изменяет фон кнопок при наведении.*/
+        .message-options button:hover {
+            background-color: #ddd;
+        }
+
+        .dialog-username {
+            font-family: Roboto, serif;
+            font-size: 18px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 16px;
+            color: black;
+        }
+
+        .last_online {
+            font-family: Roboto, serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            color: #928F8F;
+        }
+
+        .textarea {
+            border: none;
+            outline: none;
+            font-family: Roboto, serif;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+        }
+
+        /* Стилизация блока сообщения для обеспечения переноса текста и ограничения ширины */
+        .message-item .message-content, .message-self {
+            word-wrap: break-word; /* Разрешаем перенос слов */
+            max-width: 75%; /* Ограничиваем ширину до 50% контейнера сообщений */
+            overflow-wrap: break-word; /* Обеспечиваем перенос длинных слов */
+        }
+
+        /* Стиль для текстовой области с автоматическим переносом текста */
+        textarea[name="message"] {
+            white-space: pre-wrap;
+        }
+
+        .user-profile-sidebar {
+            position: fixed;
+            right: -100%; /* начальное положение справа за пределами экрана */
+            top: 0;
+            width: 429px; /* ширина шторки */
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: right 0.3s; /* плавное движение */
+            overflow-y: auto; /* добавьте прокрутку, если содержимое выходит за пределы */
+        }
+
+        .user-profile-sidebar.open {
+            right: 0; /* конечное положение шторки */
+        }
+
+        .profile-picture-overlay {
+            display: flex;
+            justify-content: center; /* центрирование по горизонтали */
+            align-items: center; /* центрирование по вертикали */
+            margin-top: 20px; /* отступ сверху для эстетики */
+        }
+
+        .message_input {
+            border: none;
+            outline: none;
+            font-family: Roboto, serif;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            text-align: left; /* Выравнивание текста слева */
+            height: auto; /* Автоматическая высота */
+            overflow-y: auto; /* Скролл для переполнения */
+            resize: none; /* Убрать возможность ручного изменения размера */
+            max-height: 150px; /* Максимальная высота до 4 строк текста */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .message_input::-webkit-scrollbar {
+            display: none;
+        }
+
+        .button_ful {
+            display: flex;
+            height: 53px;
+            width: 100px;
+            padding: 0 24px;
+            justify-content: center;
+            align-items: center;
+            align-self: stretch;
+            background-color: #2A88B9;
+            border-radius: 8px;
+            border: 3px #2A88B9;
+        }
+
+        .button_ful:hover,
+        .button_ful:focus,
+        .button_ful:active {
+            background-color: #2A88B9;
+        }
+
+        .time {
+            font-family: Roboto, serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+            letter-spacing: 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-0" style="padding-left: 0">
+    <!-- Добавлено скрытое поле для хранения dialogId -->
+    <input type="hidden" name="dialog_id" value="{{ dialog.id }}">
+
+    <div class="interlocutor-info mb-0 pb-0" style="padding-left: 15px; position: relative;">
+        <img src="/profile/picture/{{ dialog.interlocutor_phone_number }}" alt="Interlocutor's profile picture"
+             width="50" height="50">
+        <!-- Зеленый индикатор для статуса собеседника -->
+        <div id="online-indicator-interlocutor"
+             style="position: absolute; bottom: 0; right: 0; height: 10px; width: 10px; background-color: green; border-radius: 50%; display: none;"></div>
+
+        <div class="interlocutor-details" style="margin-left: 8px">
+            <!-- Предположим, что у вас есть ID собеседника -->
+            <input type="hidden" id="interlocutor-id" value="{{ dialog.interlocutor_id }}">
+            <h5 class="dialog-username" style="margin-bottom: 0">
+                <a href="/profile/{{ dialog.interlocutor_phone_number }}" style="text-decoration: none; color: black"
+                   onclick="handleUsernameClick(event)"> {{ dialog.user_fio }} </a>
+            </h5>
+            <!-- Добавляем элемент для отображения статуса онлайн/оффлайн -->
+            <small id="online-status-display">Оффлайн</small>
+        </div>
+
+        <hr class="my-0">
+    </div>
+    <hr style="width: 891px; margin-right: 50px; height: 1px">
+
+    <div class="mt-4 messages-container" style="margin-right: 15px">
+        <ul class="list-group">
+            {% set today = "2024-02-01" %}
+            {% set yesterday = "2024-01-31" %}
+            {% set current_day = "2020-01-01" %}
+            {% set current_year = "2024" %}
+            {% for message in messages %}
+                <div style="text-align: center; color: #928F8F;">
+                    {% if messages[loop.index - 1] %}
+                        {% if messages[loop.index - 2].timestamp[0:10] != messages[loop.index - 1].timestamp[0:10] %}
+                            {% if messages[loop.index - 1].timestamp[0:10] == today %}
+                                Сегодня
+                            {% elif messages[loop.index - 1].timestamp[0:10] == yesterday %}
+                                Вчера
+                            {% else %}
+                                {{ messages[loop.index - 1].timestamp[8:10] }}
+                                {% with month_number=message.timestamp[5:7] %}
+                                    {% if month_number == '01' %}
+                                        января
+                                    {% elif month_number == '02' %}
+                                        февраля
+                                    {% elif month_number == '03' %}
+                                        марта
+                                    {% elif month_number == '04' %}
+                                        апреля
+                                    {% elif month_number == '05' %}
+                                        мая
+                                    {% elif month_number == '06' %}
+                                        июня
+                                    {% elif month_number == '07' %}
+                                        июля
+                                    {% elif month_number == '08' %}
+                                        августа
+                                    {% elif month_number == '09' %}
+                                        сентября
+                                    {% elif month_number == '10' %}
+                                        октября
+                                    {% elif month_number == '11' %}
+                                        ноября
+                                    {% elif month_number == '12' %}
+                                        декабря
+                                    {% endif %}
+                                {% endwith %}
+
+                                {% if message.timestamp[0:4] != current_year %}
+                                    {{ message.timestamp[0:4] }}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% if not message.delete_timestamp %}
+                    <div class="message-item {% if message.sender_id == current_user.id %}user{% endif %}"
+                         data-message-id="{{ message.id }}" style="margin-bottom: 0">
+                        <div class="message-content" style="margin-bottom: 0; margin-left: 50px">
+                            {% if message.sender_nickname %}
+                                <strong>{{ message.sender_nickname }}:</strong>
+                            {% endif %}
+                            {% if message.message and '[[FILE]]' in message.message and '[[/FILE]]' in message.message %}
+                                {% set raw_message = message.message.split('[[FILE]]') %}
+                                {{ raw_message[0] | safe }} <!-- Текст сообщения -->
+                                <br> <!-- Добавляем перенос строки -->
+                                {% set file_info = raw_message[1].replace('[[/FILE]]', '') %}
+                                {% set file_id_info, file_name_info = file_info.split(', ') %}
+                                {% set file_id = file_id_info.split(': ')[1] %}
+                                {% set file_name = file_name_info.split(': ')[1] %}
+                                <a href="/files/{{ file_id }}"
+                                   style="text-decoration: none; color: white">{{ file_name }}</a>
+                                <!-- Ссылка на файл -->
+                            {% elif message.message %}
+                                {{ message.message | safe }}
+                            {% else %}
+                                <!-- Сообщение пустое или удалено -->
+                            {% endif %}
+                            <br>
+                            <!-- Проверка на наличие времени редактирования и отображение соответствующего текста -->
+                            <!-- Dropdown menu for message options -->
+                            <div class="message-dropdown">
+                                <img src="/static/downarrow.png" alt="Options" class="message-options-icon"
+                                     onclick="toggleDropdownMenu(event)">
+                                <div class="message-options" style="display: none;">
+                                    {% if message.sender_id == current_user.id %}
+                                        <button class="dropdown-item" onclick="deleteMessage('{{ message.id }}')">
+                                            Удалить сообщение
+                                        </button>
+                                        <button class="dropdown-item" onclick="editMessage('{{ message.id }}')">
+                                            Изменить
+                                        </button>
+                                    {% endif %}
+                                    <button class="dropdown-item" onclick="forwardMessage('{{ message.id }}')">
+                                        Переслать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if message.sender_id == current_user.id %}
+                        <div style="text-align: right; margin-right: 20px">
+                    {% else %}
+                        <div style="text-align: left; margin-left: 50px">
+                    {% endif %}
+                <small class="time">
+                    {% if message.edit_timestamp %}
+                        Изменено: {{ message.edit_timestamp[10:16] }}
+                    {% else %}
+                        {{ message.timestamp[10:16] }}
+                    {% endif %}
+                </small>
+                </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </ul>
+    </div>
+</div>
+<div id="forwardModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Переслать сообщение</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="dialogs-list">
+                    <!-- Здесь будут отображаться диалоги -->
+                </div>
+                <div class="chat-list">
+                    <!-- Здесь будут отображаться чаты -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="mt-4 border-top"
+     style="position: fixed; bottom: 10px; width: 45%; vertical-align: middle; padding-left: 10px">
+    <!-- Элемент для отображения имени файла над формой ввода -->
+    <div id="file-name-display" style="padding: 10px; color: grey; font-size: 14px;"></div>
+
+    <form id="message-form" style="display: flex; align-items: center;">
+        <input type="hidden" name="dialog_id" value="{{ dialog.id }}">
+        <input type="hidden" name="sender_id" value="{{ current_user.id }}">
+        <input type="file" id="fileInput" name="file" class="form-control-file" multiple
+               style="display: none;" onchange="updateFileNameDisplay()">
+        <label for="fileInput" id="fileInputLabel">
+            <img src="../static/attach_files.svg" alt="Attach Files" style="cursor: pointer; margin-right: 10px;">
+        </label>
+        <textarea name="message" id="message-input" class="form-control message_input"
+                  placeholder="Введите сообщение" rows="1"
+                  style="flex-grow: 1; margin-right: 10px; height: auto; min-height: 20px; max-height: 100px; overflow-y: auto; resize: none; text-align: left; scrollbar-width: none; -ms-overflow-style: none; ::-webkit-scrollbar { display: none; }"
+        ></textarea>
+        <button type="submit" id="send-button" class="btn btn-primary button_ful">Отправить</button>
+    </form>
+</div>
+
+
+<!-- Шторка профиля пользователя -->
+<div id="user-profile-sidebar" class="user-profile-sidebar">
+    <!-- Контент шторки -->
+    <div class="profile-content">
+        <!-- Заголовок с кнопкой закрытия -->
+        <div class="profile-header">
+            <h3>Профиль пользователя</h3>
+            <button onclick="closeUserProfileSidebar()">Закрыть</button>
+        </div>
+
+        <!-- Блок с изображением и информацией о пользователе -->
+        <div class="profile-picture-overlay">
+            <img id="profile-image" src="/path_to_image" alt="Фото профиля" width="150" height="150">
+            <!-- Другие данные пользователя -->
+            <h4 id="user-name">Имя пользователя</h4>
+            <p id="user-status">Статус пользователя</p>
+            <!-- ... другая информация ... -->
+        </div>
+
+        <!-- Кнопка для удаления диалога -->
+        <button id="delete-dialog-button" data-dialog-id="123"
+                onclick="deleteDialog(this.getAttribute('data-dialog-id'))">
+            Удалить диалог
+        </button>
+    </div>
+</div>
+
+
+<!--<div class="mt-4">#}-->
+<!--    {#-->
+<!--    <button onclick="location.href='/home'" class="btn btn-secondary">Вернуться назад</button>-->
+<!--    #}-->
+<!--    {#-->
+<!--</div>-->
+
+
+<script>
+
+    document.getElementById('message-input').addEventListener('keypress', function (event) {
+        // Проверяем, была ли нажата клавиша Enter
+        if (event.key === 'Enter') {
+            // Отменяем стандартное поведение (предотвращаем перенос строки)
+            event.preventDefault();
+            // Вызываем функцию, которая обрабатывает отправку формы
+            submitForm();
+        }
+    });
+
+    // Добавляем обработчик события для кнопки отправки
+    document.getElementById('send-button').addEventListener('click', function (event) {
+        // Отменяем стандартное поведение кнопки, чтобы форма не отправлялась дважды
+        event.preventDefault();
+        // Вызываем функцию, которая обрабатывает отправку формы
+        submitForm();
+    });
+
+    function submitForm() {
+        // Получаем форму по её ID и вызываем метод submit()
+        document.getElementById('message-form').submit();
+    }
+
+    // {#    document.addEventListener('DOMContentLoaded', function () {#}
+    // {#        const dialogId = "{{ dialog.id }}";#}
+    // {#        const cookie = document.cookie.split('; ').find(row => row.startsWith('access_token='));#}
+    // {#        const access_token = cookie ? cookie.split('=')[1] : null;#}
+    // {#        const ws = new WebSocket(`ws://127.0.0.1:8080/ws/dialogs/${dialogId}/`);#}
+    // {##}
+    // {#        ws.onopen = function (event) {#}
+    // {#            console.log("WebSocket connection opened.", event);#}
+    // {#            ws.send(JSON.stringify({"action": "init_connection", "dialog_id": dialogId, "access_token": access_token}));#}
+    // {#        };#}
+    // {##}
+    // {#        function appendMessage(messageData) {#}
+    // {#            const messagesList = document.querySelector('.list-group');#}
+    // {#            const newMessage = document.createElement('li');#}
+    // {#            newMessage.className = "message-item";#}
+    // {#            newMessage.setAttribute('data-message-id', messageData.message.id)#}
+    // {##}
+    // {#            // Логирование для отладки#}
+    // {#            console.log("Message sender ID:", messageData.message.sender_id, "Current User ID:", "{{ current_user.id }}");#}
+    // {##}
+    // {##}
+    // {#            const messageContent = document.createElement('div');#}
+    // {#            messageContent.className = "message-content";#}
+    // {##}
+    // {#            const senderNickname = messageData.message.sender_nickname;#}
+    // {#            if (senderNickname) {#}
+    // {#                const strongElement = document.createElement('strong');#}
+    // {#                strongElement.innerText = senderNickname;#}
+    // {#                messageContent.appendChild(strongElement);#}
+    // {#            }#}
+    // {##}
+    // {#            const textNode = document.createTextNode(" " + messageData.message.message);#}
+    // {#            messageContent.appendChild(textNode);#}
+    // {##}
+    // {#            const timeElement = document.createElement("small");#}
+    // {#            timeElement.innerText = "Отправлено: " + (messageData.message.timestamp || "undefined");#}
+    // {#            messageContent.appendChild(timeElement);#}
+    // {##}
+    // {#            // Добавление выпадающего меню для опций сообщения#}
+    // {#            const dropdown = document.createElement('div');#}
+    // {#            dropdown.className = "message-dropdown";#}
+    // {#            const dropdownIcon = document.createElement('img');#}
+    // {#            dropdownIcon.src = "/static/downarrow.png";#}
+    // {#            dropdownIcon.alt = "Options";#}
+    // {#            dropdownIcon.className = "message-options-icon";#}
+    // {##}
+    // {#            const messageOptions = document.createElement('div');#}
+    // {#            messageOptions.className = "message-options";#}
+    // {##}
+    // {#            // Опция удаления#}
+    // {#            const deleteOption = document.createElement('button');#}
+    // {#            deleteOption.className = "dropdown-item";#}
+    // {#            deleteOption.textContent = "Удалить сообщение";#}
+    // {#            deleteOption.onclick = function () {#}
+    // {#                ws.send(JSON.stringify({#}
+    // {#                    "action": "delete_message",#}
+    // {#                    "message_id": messageData.message.id#}
+    // {#                }));#}
+    // {#            };#}
+    // {##}
+    // {#            messageOptions.appendChild(deleteOption);#}
+    // {#            dropdown.appendChild(dropdownIcon);#}
+    // {#            dropdown.appendChild(messageOptions);#}
+    // {#            messageContent.appendChild(dropdown);#}
+    // {##}
+    // {#            newMessage.appendChild(messageContent);#}
+    // {#            messagesList.appendChild(newMessage);#}
+    // {#        }#}
+    // {##}
+    // {##}
+    // {#        ws.onmessage = function (event) {#}
+    // {#            let messageData;#}
+    // {#            try {#}
+    // {#                messageData = JSON.parse(event.data);#}
+    // {#            } catch (e) {#}
+    // {#                console.error("Invalid JSON", e);#}
+    // {#                return;#}
+    // {#            }#}
+    // {##}
+    // {#            const action = messageData.action;#}
+    // {##}
+    // {#            if (action === 'new_token') {#}
+    // {#                document.cookie = "access_token=" + messageData.token;#}
+    // {#            } else if (action === 'new_message') {#}
+    // {#                appendMessage(messageData); // Важно, чтобы функция appendMessage правильно обрабатывала классы сообщений#}
+    // {#            } else if (action === 'message_deleted') {#}
+    // {#                const messageId = messageData.message_id;#}
+    // {#                const messageElement = document.querySelector(`li[data-message-id="${messageId}"]`);#}
+    // {#                if (messageElement) {#}
+    // {#                    messageElement.remove();#}
+    // {#                }#}
+    // {#            } else {#}
+    // {#                console.warn('Неожиданный формат сообщения: ', messageData);#}
+    // {#            }#}
+    // {#        };#}
+    // {##}
+    // {##}
+    // {#        // Обработчик кликов по иконке выпадающего списка#}
+    // {#        document.addEventListener('click', function (event) {#}
+    // {#            var messageOptionsIcon = event.target.closest('.message-options-icon');#}
+    // {#            if (messageOptionsIcon) {#}
+    // {#                var messageOptions = messageOptionsIcon.nextElementSibling;#}
+    // {#                messageOptions.style.display = messageOptions.style.display === 'block' ? 'none' : 'block';#}
+    // {#            } else {#}
+    // {#                // Закрытие всех открытых меню при клике вне их#}
+    // {#                var messageOptionsElements = document.querySelectorAll('.message-options');#}
+    // {#                messageOptionsElements.forEach(function (menu) {#}
+    // {#                    if (menu.style.display === 'block') {#}
+    // {#                        menu.style.display = 'none';#}
+    // {#                    }#}
+    // {#                });#}
+    // {#            }#}
+    // {#        });#}
+    // {#    })#}
+    // {#    #}
+</script>
+</body>
+</html>

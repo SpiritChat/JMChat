@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ chat.chat_name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+    <!-- Собственные стили -->
+    <style>
+        body {
+            background-color: rgba(211, 211, 211, 0.2);
+            font-family: Times New Roman, sans-serif;
+        }
+
+        .interlocutor-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .interlocutor-info img {
+            border-radius: 50%;
+        }
+
+        .interlocutor-details {
+            margin-left: 10px;
+        }
+
+        .messages-container {
+            height: calc(85vh - 100px);
+            overflow-y: auto;
+            border: 1px solid rgba(206, 131, 52, 0.02);
+            border-radius: 8px;
+            padding: 15px;
+            background-color: white;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+            scroll-behavior: smooth;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .message-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .message-item.user {
+            justify-content: flex-end;
+            z-index: 1;
+        }
+
+        .message-content h4 {
+            font-size: 0.9rem;
+            margin: 0;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .message-content {
+            background-color: rgba(42, 136, 185, 0.1);
+            color: black;
+            padding: 10px;
+            padding-right: 20px;
+            border-radius: 10px;
+            max-width: 75%;
+            position: relative;
+            z-index: 1;
+        }
+
+
+        .message-item.user .message-content {
+            background-color: #2A88B9;
+            color: #ffffff;
+            margin: 5px;
+        }
+
+        /* Стилизация блока сообщения для обеспечения переноса текста и ограничения ширины */
+        .message-item .message-content, .message-self {
+            word-wrap: break-word;
+            max-width: 75%;
+            overflow-wrap: break-word;
+        }
+
+        /* Стиль для текстовой области с автоматическим переносом текста */
+        textarea[name="message"] {
+            white-space: pre-wrap;
+            overflow-y: hidden; /* Убрать скроллбар */
+        }
+
+        /* Стиль для адаптивного textarea */
+        textarea.message_input {
+            width: 100%; /* Занимает всю доступную ширину */
+            min-height: 20px; /* Минимальная начальная высота */
+            max-height: 100px; /* Максимальная высота до 4 строк текста */
+            height: auto; /* Автоматическая высота */
+            overflow-y: hidden; /* Убрать вертикальный скролл */
+            resize: none; /* Убрать возможность изменения размера */
+            text-align: left; /* Выравнивание текста по левому краю */
+            padding: 5px; /* Отступы внутри поля ввода */
+        }
+
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-dropdown {
+            position: absolute;
+            top: 5px;
+            right: -1px;
+            z-index: 2;
+            visibility: hidden;
+        }
+
+        .message-options-icon {
+            width: 20px;
+            height: 20px;
+            z-index: 10;
+        }
+
+        .message-options {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 1000;
+            padding: 5px 0;
+        }
+
+        .message-item:hover .message-dropdown {
+            visibility: visible;
+        }
+
+        .message-item .message-content:hover .message-dropdown {
+            visibility: visible;
+        }
+
+
+        .message-options button {
+            background-color: transparent;
+            border: none;
+            width: 100%;
+            padding: 5px 10px;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #ccc;
+            z-index: 1000;
+        }
+
+        .message-options button:last-child {
+            border-bottom: none;
+        }
+
+        .message-options button:hover {
+            background-color: #ddd;
+        }
+
+        .drawer {
+            z-index: 1000;
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 429px;
+            height: 100vh;
+            background-color: white;
+            border-left: 1px solid white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drawer img {
+            border-radius: 50%;
+            display: block;
+            margin: auto;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        input::placeholder {
+            opacity: 0.5;
+        }
+
+        .profile-picture-overlay {
+            position: relative;
+        }
+
+        .edit-photo-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .edit-photo-label:hover {
+            opacity: 1;
+        }
+
+        .profile-picture-overlay:hover .edit-photo-label {
+            opacity: 1;
+        }
+
+        .drawer a.btn-secondary {
+            margin-top: auto; /* Это переместит кнопку вниз "шторки" */
+        }
+
+
+        .message_input {
+            border: none;
+            outline: none;
+            font-family: Roboto, serif;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            text-align: left; /* Выравнивание текста слева */
+            height: auto; /* Автоматическая высота */
+            overflow-y: auto; /* Скролл для переполнения */
+            resize: none; /* Убрать возможность ручного изменения размера */
+            max-height: 100px; /* Максимальная высота до 4 строк текста */
+        }
+
+        .chat-username {
+            font-family: Roboto, serif;
+            font-size: 18px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 16px;
+            color: black;
+        }
+
+        .chatname {
+            font-family: Roboto, serif;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 32px;
+            color: black;
+        }
+
+        .last_online {
+            font-family: Roboto, serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            color: #928F8F;
+        }
+
+        .button {
+            display: flex;
+            height: 36px;
+            width: 397px;
+            padding: 0px 24px;
+            justify-content: center;
+            align-items: center;
+            align-self: stretch;
+            color: #2A88B9;
+            background-color: white;
+            border-radius: 6px;
+            border: 3px solid #2A88B9;
+        }
+
+        .button_ful {
+            display: flex;
+            height: 53px;
+            width: 100px;
+            padding: 0 24px;
+            justify-content: center;
+            align-items: center;
+            align-self: stretch;
+            background-color: #2A88B9;
+            border-radius: 8px;
+            border: 3px #2A88B9;
+        }
+
+        .button_ful:hover,
+        .button_ful:focus,
+        .button_ful:active {
+            background-color: #2A88B9;
+        }
+
+        .button:hover,
+        .button:focus,
+        .button:active {
+            color: #2A88B9;
+            background-color: white;
+            border-radius: 6px;
+            border: 3px solid #2A88B9;
+        }
+
+        .text-blue {
+            font-family: Roboto, sans-serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            color: #2A88B9 /* Пример цвета для текста "text-blue" */
+        }
+
+        /* Стили для затемнения фона */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1040;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Основные стили модального окна */
+        .modal {
+            display: none; /* Скрыто по умолчанию */
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Если необходимо прокрутка */
+            outline: 0;
+        }
+
+        /* Содержимое модального окна */
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #999;
+            border-radius: 0.3rem;
+            outline: 0;
+            margin: 15% auto; /* Отступ сверху и авто по бокам */
+            padding: 20px;
+            width: 80%; /* Ширина модального окна */
+        }
+
+        /* Закрывающая кнопка */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .scrollable-content {
+            overflow-y: scroll;
+            scrollbar-width: thin; /* для Firefox */
+            scrollbar-color: transparent transparent; /* для Firefox */
+            max-height: 85vh;
+            overflow: hidden;
+        }
+
+        .scrollable-content::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background-color: transparent;
+        }
+
+        .scrollable-content::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        .user-nickname {
+            font-family: Roboto, serif;
+            font-size: 14px;
+            line-height: 16px;
+            letter-spacing: 0;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .time {
+            font-family: Roboto, serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+            letter-spacing: 0em;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<!-- "Шторка" с дополнительными опциями -->
+<div class="drawer" id="chatDrawer" style="text-align: left; overflow-y: auto;">
+    <!-- Фотография чата -->
+    <div class="profile-picture-overlay">
+        <label class="edit-photo-label" id="change-photo-button">Изменить фото</label>
+        <img id="chatImage" src="/chat/picture/{{ chat.id }}" alt="Chat picture" width="140" height="140">
+        <input type="file" id="photo-upload" accept="image/*" style="display: none">
+    </div>
+    <!-- Форма для изменения фотографии -->
+    <input type="file" id="fileInput" style="display:none;" name="new_picture">
+
+    <div class="interlocutor-details" style="margin-left: 8px">
+        <h5 class="chat-name chatname" style="margin-bottom: 0">{{ chat.chat_name }}</h5>
+        <small class="last_online">Участники</small>
+    </div>
+
+    <hr>
+
+    <!-- Поле для изменения названия -->
+    {% if chat.owner_phone_number == current_user.phone_number %}
+        <form class="change-chat-name-form" action="/chats/{{ chat.id }}/change_name" method="post">
+            <input type="text" name="new_name" placeholder="Новое название">
+            <button type="submit">Изменить название</button>
+        </form>
+    {% endif %}
+
+    <div class="text-center" style="width: 413px; margin: 0 auto; text-align: left;">
+        <div class="mt-3">
+            <div class="d-flex flex-column align-items-start">
+                <div class="text-left text-blue mb-2"><strong>Администратор группы:</strong></div>
+                <div>
+                    <div class="mb-0 border-bottom"
+                         style="padding: 12px 10px;display: flex; align-items: center;">
+                        <img src="/profile/picture/{{ owner['phone_number'] }}" alt="Interlocutor's profile picture"
+                             width="50" height="50">
+                        <div class="interlocutor-details" style="margin-left: 8px">
+                            <h5 class="username" style="margin-bottom: 0"><a
+                                    href="/profile/{{ owner['phone_number'] }}"
+                                    style="text-decoration: none; color: black"> {{ owner['phone_number'] }} </a>
+                            </h5>
+                            <small class="status">{{ owner['status'] }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="my-0" ; style="margin-right: 13px">
+    </div>
+
+    <hr>
+
+    <div class="text-center" style="width: 413px; margin: 0 auto; text-align: left;">
+        <div class="mt-3">
+            <div class="d-flex flex-column align-items-start">
+                <div class="text-left text-blue mb-2"><strong>Участники:</strong></div>
+                {% for user in users %}
+                    <div>
+                        <div class="mb-0 border-bottom"
+                             style="padding: 12px 10px;display: flex; align-items: center;">
+                            <img src="/profile/picture/{{ user['phone_number'] }}" alt="Interlocutor's profile picture"
+                                 width="50" height="50">
+                            <div class="interlocutor-details" style="margin-left: 8px">
+                                <h5 class="username" style="margin-bottom: 0"><a
+                                        href="/profile/{{ user['phone_number'] }}"
+                                        style="text-decoration: none; color: black"> {{ user['phone_number'] }} </a>
+                                </h5>
+                                <small class="status">{{ user['status'] }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-0" style="width: 400px">
+                {% endfor %}
+            </div>
+            <!-- Кнопка "Добавить участника" -->
+            {% if chat.owner_phone_number == current_user.phone_number %}
+                <button id="addParticipantButton" class="btn btn-primary button">Добавить участника</button>
+
+            {% endif %}
+        </div>
+    </div>
+
+
+    <hr>
+
+    <!-- Остальные действия -->
+    {% if chat.owner_phone_number == current_user.phone_number %}
+        <!--        <a href="/chat/{{ chat.id }}/members/add" class="btn btn-primary">Пригласить</a>-->
+        <form action="/chats/{{ chat.id }}/delete" method="post">
+            <button type="submit" class="btn btn-primary button">Удалить чат</button>
+        </form>
+    {% else %}
+        <form action="/chats/{{ chat.id }}/leave" method="post">
+            <button type="submit" class="btn btn-primary button">Покинуть чат</button>
+        </form>
+    {% endif %}
+    {# <a href="/chat/{{ chat.id }}/members" id="member-count" class="btn btn-info">{{ members|length }}#}
+    {# участников</a>#}
+
+    <!-- Добавленная кнопка "Вернуться домой" -->
+    <a href="/home" class="btn btn-secondary" style="visibility: hidden">Вернуться назад</a>
+</div>
+
+<div class="container mt-0" style="padding-left: 0;">
+    <div class="interlocutor-info mb-0 pb-0" style="padding-left: 15px;">
+        <img src="/chat/picture/{{ chat.id }}" alt="Interlocutor's profile picture"
+             width="50" height="50">
+        <div class="interlocutor-details" style="margin-left: 8px">
+            <h5 class="chat-name chat-username" style="margin-bottom: 0">{{ chat.chat_name }}</h5>
+            <small class="last_online">Участники</small>
+        </div>
+    </div>
+    <hr style="width: 891px; margin-right: 50px; height: 1px">
+
+    {#    <div class="messages-container">#}
+    {#        <!-- Список сообщений -->#}
+    {#        <ul class="messages-list" id="chat-history">#}
+    {#            {% for message in messages %}#}
+    {#                <div class="all_message" data-message-id="{{ message.id }}">#}
+    {#                <div class="message-nickname" data-message-id="{{ message.id }}" style="margin-bottom: 0">#}
+    {#                    {% if message.sender_phone_number != current_user.phone_number %}#}
+    {#                        <a href="/profile/{{ message.sender_nickname }}"#}
+    {#                           style="text-decoration: none; color: black">#}
+    {#                            <h4 class="user-nickname">{{ message.sender_nickname }}</h4>#}
+    {#                        </a>#}
+    {#                    {% endif %}#}
+    {#                </div>#}
+    {#                <div class="message-item {% if message.sender_phone_number == current_user.phone_number %}user{% endif %}"#}
+    {#                     data-message-id="{{ message.id }}" style="padding-top: 0; margin-bottom: 0">#}
+    {#                    <div class="message-content" style="margin-bottom: 0">#}
+    {#                        <div class="message-header">#}
+    {#                            <div class="message-dropdown">#}
+    {#                                <img src="/static/downarrow.png" alt="Options" class="message-options-icon">#}
+    {#                                <div class="message-options">#}
+    {#                                    <button class="delete-message-button">Удалить сообщение</button>#}
+    {#                                    <button class="forward-message">Переслать</button>#}
+    {#                                    <button class="dropdown-item edit-message-button">Редактировать</button>#}
+    {#                                </div>#}
+    {#                            </div>#}
+    {#                        </div>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#                {% if message.sender_phone_number == current_user.phone_number %}#}
+    {#                    <div class="message-time" style="text-align: right" data-message-id="{{ message.id }}">#}
+    {#                {% else %}#}
+    {#                    <div class="message-time" style="text-align: left" data-message-id="{{ message.id }}">#}
+    {#                {% endif %}#}
+    {#            <small class="time">123</small>#}
+    {#            <div style="height: 12px"></div>#}
+    {#            </div>#}
+    {#            </div>#}
+    {#            {% endfor %}#}
+    {#        </ul>#}
+    {#    </div>#}
+
+    <!-- Контейнер для сообщений -->
+    <div class="messages-container">
+        <!-- Список сообщений -->
+        <ul class="messages-list" id="chat-history">
+            {% set today = "2024-02-01" %}
+            {% set yesterday = "2024-01-31" %}
+            {% set current_day = "2023-12-07" %}
+            {% set current_year = "2024" %}
+            {% for message in messages %}
+                <div style="text-align: center; color: #928F8F;">
+                    {% if messages[loop.index - 1] %}
+                        {% if messages[loop.index - 2].timestamp.strftime('%Y-%m-%d') != messages[loop.index - 1].timestamp.strftime('%Y-%m-%d') %}
+                            {% if messages[loop.index - 1].timestamp.strftime('%Y-%m-%d') == today %}
+                                Сегодня
+                            {% elif messages[loop.index - 1].timestamp.strftime('%Y-%m-%d') == yesterday %}
+                                Вчера
+                            {% else %}
+                                {{ messages[loop.index - 1].timestamp.strftime('%Y-%m-%d')[8:10] }}
+                                {% with month_number=message.timestamp.strftime('%Y-%m-%d')[5:7] %}
+                                    {% if month_number == '01' %}
+                                        января
+                                    {% elif month_number == '02' %}
+                                        февраля
+                                    {% elif month_number == '03' %}
+                                        марта
+                                    {% elif month_number == '04' %}
+                                        апреля
+                                    {% elif month_number == '05' %}
+                                        мая
+                                    {% elif month_number == '06' %}
+                                        июня
+                                    {% elif month_number == '07' %}
+                                        июля
+                                    {% elif month_number == '08' %}
+                                        августа
+                                    {% elif month_number == '09' %}
+                                        сентября
+                                    {% elif month_number == '10' %}
+                                        октября
+                                    {% elif month_number == '11' %}
+                                        ноября
+                                    {% elif month_number == '12' %}
+                                        декабря
+                                    {% endif %}
+                                {% endwith %}
+
+                                {% if message.timestamp.strftime('%Y-%m-%d')[0:4] != current_year %}
+                                    {{ message.timestamp.strftime('%Y-%m-%d')[0:4] }}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {#                {% if message.timestamp.strftime('%Y-%m-%d') != current_day %}#}
+                {#                    here#}
+                {#                    {% if message.timestamp.strftime('%Y-%m-%d') == today %}#}
+                {#                        <p>Сегодня</p>#}
+                {#                    {% else %}#}
+                {#                        <p>{{ message.timestamp.strftime('%Y-%m-%d') }}</p>#}
+                {#                    {% endif %}#}
+                {#                    {% set current_day = message.timestamp.strftime('%Y-%m-%d') %}#}
+                {#                {% endif %}#}
+                <div class="all_message" data-message-id="{{ message.id }}">
+                <div class="message-nickname" data-message-id="{{ message.id }}" style="margin-bottom: 0">
+                    {% if message.sender_phone_number != current_user.phone_number %}
+                        <a href="/profile/{{ message.sender_nickname }}"
+                           style="text-decoration: none; color: black">
+                            <h4 class="user-nickname">{{ message.sender_nickname }}</h4>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="message-item {% if message.sender_phone_number == current_user.phone_number %}user{% endif %}"
+                     data-message-id="{{ message.id }}" style="padding-top: 0; margin-bottom: 0">
+                    <div class="message-content" style="margin-bottom: 0">
+                        <div class="message-header">
+                            {% if message.sender_phone_number == "deleted" %}
+                                <h4>Deleted message</h4>
+                            {% endif %}
+
+                            <!-- Добавляем иконку и выпадающее меню рядом с никнеймом -->
+                            <div class="message-dropdown">
+                                {% if message.sender_phone_number != "deleted" %}
+                                    <img src="/static/downarrow.png" alt="Options" class="message-options-icon">
+                                    <div class="message-options">
+                                        {% if chat.owner_phone_number == current_user.phone_number or message.sender_phone_number == current_user.phone_number %}
+                                            <button class="delete-message-button">Удалить сообщение</button>
+                                        {% endif %}
+                                        <button class="forward-message">Переслать</button>
+                                        {% if message.sender_phone_number == current_user.phone_number %}
+                                            <button class="dropdown-item edit-message-button">Редактировать</button>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p style="margin-bottom: 0;">
+                            {% if '[[FILE]]' in message.message %}
+                                {% set parts = message.message.split('[[FILE]]') %}
+                                {{ parts[0] }}
+                                {% if '[[/FILE]]' in parts[1] %}
+                                    {% set file_info = parts[1].split('[[/FILE]]')[0] %}
+                                    {% set file_parts = file_info.split(', ') %}
+                                    {% if file_parts|length > 1 %}
+                                        <div>
+                                            <a href="/files/{{ file_parts[0].split(': ')[1] }}"
+                                               style="text-decoration: none; color: white">{{ file_parts[1].split(': ')[1] }}</a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                {{ message.message }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if message.sender_phone_number == current_user.phone_number %}
+                    <div class="message-time" style="text-align: right; margin-right: 5px" data-message-id="{{ message.id }}">
+                {% else %}
+                    <div class="message-time" style="text-align: left" data-message-id="{{ message.id }}">
+                {% endif %}
+            <small class="time">
+                {% if message.edit_timestamp %}
+                    Изменено: {{ message.edit_timestamp.strftime('%H:%M') }}
+                {% else %}
+                    {{ message.timestamp.strftime('%H:%M') }}
+                {% endif %}
+            </small>
+            <div style="height: 12px"></div>
+            </div>
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div id="forwardModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Переслать сообщение</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="dialogs-list">
+                    <!-- Здесь будут отображаться диалоги -->
+                </div>
+                <div class="chat-list">
+                    <!-- Здесь будут отображаться чаты -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Форма для отправки сообщения -->
+<div class="mt-4 border-top"
+     style="position: fixed; bottom: 10px; width: 45%; vertical-align: middle; padding-left: 15px"
+     id="message-form-container">
+    <!-- Область для отображения информации о прикрепленном файле -->
+    <div id="file-display-area" style="padding: 10px;">
+        <!-- Информация о файле и кнопка удаления файла будут отображаться здесь -->
+    </div>
+
+    <form action="/chats/{{ chat.id }}/send_message" method="post" enctype="multipart/form-data"
+          style="padding-top: 10px; display: flex; align-items: center;">
+        <input type="hidden" name="sender_phone_number" value="{{ current_user.phone_number }}">
+
+        <img src="../static/attach_files.svg" id="file" name="file" style="cursor: pointer; margin-right: 10px;"
+             multiple>
+        <input type="file" id="file-input" name="file" class="form-control" style="display:none;" for="file-input">
+
+        <!-- Обновленное поле ввода текста с невидимым скролл-баром -->
+        <textarea id="message-input" name="message_text" class="form-control message_input"
+                  placeholder="Введите сообщение"
+                  style="flex-grow: 1; margin-right: 10px; height: auto; min-height: 20px; max-height: 100px; overflow-y: auto; resize: none; text-align: left; scrollbar-width: none; -ms-overflow-style: none; ::-webkit-scrollbar { display: none; }"></textarea>
+
+        <button type="submit" id="send-button" class="btn btn-primary button_ful">Отправить</button>
+    </form>
+</div>
+</div>
+
+
+<!-- Модальное окно для добавления участников -->
+<div id="addParticipantModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+        <!-- Содержимое модального окна -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Выберите контакты для добавления</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="contactsList">
+                <!-- Список контактов будет загружен сюда -->
+            </div>
+            <div class="modal-footer">
+                <button id="confirmAddParticipants" class="btn btn-primary">Добавить выбранных</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+
+    $(document).ready(function () {
+
+        // Обработчики событий для изменения фотографии чата
+        const chatImage = document.getElementById('chatImage');
+        const changePhotoButton = document.getElementById("change-photo-button");
+        const photoUpload = document.getElementById("photo-upload");
+        const chatId = "{{ chat.id }}";
+
+        changePhotoButton.addEventListener("click", function () {
+            photoUpload.click();
+        });
+
+        photoUpload.addEventListener("change", function (event) {
+            const fileInput = event.target;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const formData = new FormData();
+                formData.append("new_picture", fileInput.files[0]);
+                fetch(`/chats/${chatId}/change_picture`, {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "picture updated") {
+                            const readerForDrawer = new FileReader();
+                            readerForDrawer.onload = function (e) {
+                                chatImage.src = e.target.result;
+                            };
+                            readerForDrawer.readAsDataURL(fileInput.files[0]);
+
+                            const readerForContainer = new FileReader();
+                            const interlocutorImage = document.querySelector('.interlocutor-info img');
+                            readerForContainer.onload = function (e) {
+                                interlocutorImage.src = e.target.result;
+                            };
+                            readerForContainer.readAsDataURL(fileInput.files[0]);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+
+
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('access_token='));
+        const access_token = cookie ? cookie.split('=')[1] : null;
+        const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chats/${chatId}/`);
+
+        ws.onopen = function (event) {
+            console.log("WebSocket connection opened.", event);
+            ws.send(JSON.stringify({
+                "action": "init_connection",
+                "chat_id": chatId,
+                "access_token": access_token
+            }));
+        };
+
+        ws.onclose = function (event) {
+            console.log("WebSocket connection closed:", event);
+        };
+
+        ws.onerror = function (error) {
+            console.log(`WebSocket Error: ${error}`);
+        };
+
+        ws.onmessage = function (event) {
+            const messageData = JSON.parse(event.data);
+            const action = messageData.action;
+
+            if (action === 'new_token') {
+                document.cookie = "access_token=" + messageData.token;
+            } else if (action === 'update_member_count') {
+                document.getElementById('member-count').textContent = messageData.count + " участников";
+            } else if (action === 'message_deleted') {
+                const messageId = messageData.message_id;
+                const messageElement = document.querySelector(`.message-item[data-message-id="${messageId}"]`);
+                const timeElement = document.querySelector(`#data-message-id=${messageId}`);
+                console.log(timeElement)
+                if (messageElement) {
+                    messageElement.remove();
+                }
+            } else {
+                if (messageData.message && messageData.sender_phone_number) {
+                    const messagesList = document.getElementById('chat-history');
+                    const newMessageItem = document.createElement('div');
+                    newMessageItem.className = "message-item";
+                    if (messageData.sender_phone_number === "{{ current_user.phone_number }}") {
+                        newMessageItem.className += " user";
+                    }
+
+                    const messageContent = document.createElement('div');
+                    messageContent.className = "message-content";
+                    const nicknameElement = document.createElement("h4");
+                    nicknameElement.innerText = messageData.sender_nickname || "Unknown";
+                    messageContent.appendChild(nicknameElement);
+                    const messageTextElement = document.createElement('p');
+                    messageTextElement.innerText = messageData.message;
+                    messageContent.appendChild(messageTextElement);
+                    const timeElement = document.createElement("small");
+                    timeElement.innerText = "Отправлено: " + (messageData.timestamp || "undefined");
+                    messageContent.appendChild(timeElement);
+                    newMessageItem.appendChild(messageContent);
+                    messagesList.appendChild(newMessageItem);
+                } else {
+                    console.warn('Неожиданный формат сообщения: ', messageData);
+                }
+            }
+        };
+
+
+        const deleteButtons = document.querySelectorAll('.delete-message');
+        deleteButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                console.log('here')
+                const messageId = button.closest('.message-item').getAttribute('data-message-id');
+                ws.send(JSON.stringify({"action": "delete_message", "message_id": messageId}));
+            });
+        });
+
+        const messageForm = document.querySelector('form[action*="/send_message"]');
+        messageForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(messageForm);
+            fetch(messageForm.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        messageForm.reset();
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+    })
+    ;
+</script>
+</div>
+
+<!--    {#    &lt;!&ndash; Контейнер для сообщений &ndash;&gt;#}-->
+<!--    {#    <div class="messages-container" style="padding-left: 0">#}-->
+<!--    {#        &lt;!&ndash; Список сообщений &ndash;&gt;#}-->
+<!--    {#        <ul class="messages-list" id="chat-history" style="padding-left: 0">#}-->
+<!--    {#            {% for message in messages %}#}-->
+<!--    {#                <div class="message-item {% if message.sender_phone_number == current_user.phone_number %}user{% endif %}"#}-->
+<!--    {#                     data-message-id="{{ message.id }}">#}-->
+<!--    {#                    <div class="message-content">#}-->
+<!--    {#                        <div class="message-header">#}-->
+<!--    {#                            {% if message.sender_phone_number == "deleted" %}#}-->
+<!--    {#                                <h4>Deleted message</h4>#}-->
+<!--    {#                            {% else %}#}-->
+<!--    {#                                {% if current_user.nickname != message.sender_nickname %}#}-->
+<!--    {#                                    <a href="/profile/{{ message.sender_nickname }}">#}-->
+<!--    {#                                        <h4>{{ message.sender_nickname }}</h4></a>#}-->
+<!--    {#                                {% endif %}#}-->
+<!--    {#                            {% endif %}#}-->
+<!--        {#        <script>#}-->
+<!--        {#            // Функция для открытия и закрытия "шторки"#}-->
+<!--        {#            function toggleDrawer() {#}-->
+<!--        {#                const drawer = document.getElementById('chatDrawer');#}-->
+<!--        {#                drawer.classList.toggle('open');#}-->
+<!--        {#            }#}-->
+<!--        {##}-->
+<!--        {#            document.addEventListener('DOMContentLoaded', function () {#}-->
+<!--        {#                const interlocutorInfo = document.querySelector('.interlocutor-info');#}-->
+<!--        {#                interlocutorInfo.addEventListener('click', toggleDrawer);#}-->
+<!--        {##}-->
+<!--        {#                const chatImage = document.getElementById('chatImage');#}-->
+<!--        {#                const changePhotoButton = document.getElementById("change-photo-button");#}-->
+<!--        {#                const photoUpload = document.getElementById("photo-upload");#}-->
+<!--        {#                const chatId = "{{ chat.id }}";#}-->
+<!--        {##}-->
+<!--        {#                changePhotoButton.addEventListener("click", function () {#}-->
+<!--        {#                    photoUpload.click();#}-->
+<!--        {#                });#}-->
+<!--        {##}-->
+<!--        {#                photoUpload.addEventListener("change", function (event) {#}-->
+<!--        {#                    const fileInput = event.target;#}-->
+<!--        {##}-->
+<!--        {#                    if (fileInput.files && fileInput.files[0]) {#}-->
+<!--        {#                        const formData = new FormData();#}-->
+<!--        {#                        formData.append("new_picture", fileInput.files[0]);#}-->
+<!--        {#                        fetch(`/chats/${chatId}/change_picture`, {#}-->
+<!--        {#                            method: "POST",#}-->
+<!--        {#                            body: formData,#}-->
+<!--        {#                        })#}-->
+<!--        {#                            .then(response => response.json())#}-->
+<!--        {#                            .then(data => {#}-->
+<!--        {#                                if (data.status === "picture updated") {#}-->
+<!--        {#                                    const readerForDrawer = new FileReader();#}-->
+<!--        {#                                    readerForDrawer.onload = function (e) {#}-->
+<!--        {#                                        chatImage.src = e.target.result;#}-->
+<!--        {#                                    };#}-->
+<!--        {#                                    readerForDrawer.readAsDataURL(fileInput.files[0]);#}-->
+<!--        {##}-->
+<!--        {#                                    const readerForContainer = new FileReader();#}-->
+<!--        {#                                    const interlocutorImage = document.querySelector('.interlocutor-info img');#}-->
+<!--        {#                                    readerForContainer.onload = function (e) {#}-->
+<!--        {#                                        interlocutorImage.src = e.target.result;#}-->
+<!--        {#                                    };#}-->
+<!--        {#                                    readerForContainer.readAsDataURL(fileInput.files[0]);#}-->
+<!--        {#                                }#}-->
+<!--        {#                            })#}-->
+<!--        {#                            .catch(error => {#}-->
+<!--        {#                                console.error('Error:', error);#}-->
+<!--        {#                            });#}-->
+<!--        {#                    }#}-->
+<!--        {#                });#}-->
+<!--        {##}-->
+<!--        {#                const cookie = document.cookie.split('; ').find(row => row.startsWith('access_token='));#}-->
+<!--        {#                const access_token = cookie ? cookie.split('=')[1] : null;#}-->
+<!--        {#                const ws = new WebSocket(`ws://127.0.0.1:8080/ws/chats/${chatId}/`);#}-->
+<!--        {##}-->
+<!--        {#                ws.onopen = function (event) {#}-->
+<!--        {#                    console.log("WebSocket connection opened.", event);#}-->
+<!--        {#                    ws.send(JSON.stringify({#}-->
+<!--        {#                        "action": "init_connection",#}-->
+<!--        {#                        "chat_id": chatId,#}-->
+<!--        {#                        "access_token": access_token#}-->
+<!--        {#                    }));#}-->
+<!--        {#                };#}-->
+<!--        {##}-->
+<!--        {#                ws.onclose = function (event) {#}-->
+<!--        {#                    console.log("WebSocket connection closed:", event);#}-->
+<!--        {#                };#}-->
+<!--        {##}-->
+<!--        {#                ws.onerror = function (error) {#}-->
+<!--        {#                    console.log(`WebSocket Error: ${error}`);#}-->
+<!--        {#                };#}-->
+<!--        {##}-->
+<!--        {#                ws.onmessage = function (event) {#}-->
+<!--        {#                    const messageData = JSON.parse(event.data);#}-->
+<!--        {#                    const action = messageData.action;#}-->
+<!--        {##}-->
+<!--        {#                    if (action === 'new_token') {#}-->
+<!--        {#                        document.cookie = "access_token=" + messageData.token;#}-->
+<!--        {#                    } else if (action === 'update_member_count') {#}-->
+<!--        {#                        document.getElementById('member-count').textContent = messageData.count + " участников";#}-->
+<!--        {#                    } else if (action === 'message_deleted') {#}-->
+<!--        {#                        const messageId = messageData.message_id;#}-->
+<!--        {#                        const messageElement = document.querySelector(`.message-item[data-message-id="${messageId}"]`);#}-->
+<!--        {#                        if (messageElement) {#}-->
+<!--        {#                            messageElement.remove();#}-->
+<!--        {#                        }#}-->
+<!--        {#                    } else {#}-->
+<!--        {#                        if (messageData.message && messageData.sender_phone_number) {#}-->
+<!--        {#                            const messagesList = document.getElementById('chat-history');#}-->
+<!--        {#                            const newMessageItem = document.createElement('div');#}-->
+<!--        {#                            newMessageItem.className = "message-item";#}-->
+<!--        {#                            if (messageData.sender_phone_number === "{{ current_user.phone_number }}") {#}-->
+<!--        {#                                newMessageItem.className += " user";#}-->
+<!--        {#                            }#}-->
+<!--        {##}-->
+<!--        {#                            const messageContent = document.createElement('div');#}-->
+<!--        {#                            messageContent.className = "message-content";#}-->
+<!--        {#                            const nicknameElement = document.createElement("h4");#}-->
+<!--        {#                            nicknameElement.innerText = messageData.sender_nickname || "Unknown";#}-->
+<!--        {#                            messageContent.appendChild(nicknameElement);#}-->
+<!--        {#                            const messageTextElement = document.createElement('p');#}-->
+<!--        {#                            messageTextElement.innerText = messageData.message;#}-->
+<!--        {#                            messageContent.appendChild(messageTextElement);#}-->
+<!--        {#                            const timeElement = document.createElement("small");#}-->
+<!--        {#                            timeElement.innerText = "Отправлено: " + (messageData.timestamp || "undefined");#}-->
+<!--        {#                            messageContent.appendChild(timeElement);#}-->
+<!--        {#                            newMessageItem.appendChild(messageContent);#}-->
+<!--        {#                            messagesList.appendChild(newMessageItem);#}-->
+<!--        {#                        } else {#}-->
+<!--        {#                            console.warn('Неожиданный формат сообщения: ', messageData);#}-->
+<!--        {#                        }#}-->
+<!--        {#                    }#}-->
+<!--        {#                };#}-->
+<!--        {##}-->
+<!--        {##}-->
+<!--        {#                const optionIcons = document.querySelectorAll('.message-options-icon');#}-->
+<!--        {#                optionIcons.forEach(function (icon) {#}-->
+<!--        {#                    icon.addEventListener('click', function () {#}-->
+<!--        {#                        const messageOptions = icon.nextElementSibling;#}-->
+<!--        {#                        messageOptions.style.display = messageOptions.style.display === 'none' ? 'block' : 'none';#}-->
+<!--        {#                    });#}-->
+<!--        {#                });#}-->
+<!--        {##}-->
+<!--        {#                const deleteButtons = document.querySelectorAll('.delete-message');#}-->
+<!--        {#                deleteButtons.forEach(function (button) {#}-->
+<!--        {#                    button.addEventListener('click', function () {#}-->
+<!--        {#                        const messageId = button.closest('.message-item').getAttribute('data-message-id');#}-->
+<!--        {#                        ws.send(JSON.stringify({"action": "delete_message", "message_id": messageId}));#}-->
+<!--        {#                    });#}-->
+<!--        {#                });#}-->
+<!--        {##}-->
+<!--        {#                const messageForm = document.querySelector('form[action*="/send_message"]');#}-->
+<!--        {#                messageForm.addEventListener('submit', function (event) {#}-->
+<!--        {#                    event.preventDefault();#}-->
+<!--        {#                    const formData = new FormData(messageForm);#}-->
+<!--        {#                    fetch(messageForm.action, {#}-->
+<!--        {#                        method: 'POST',#}-->
+<!--        {#                        body: formData#}-->
+<!--        {#                    })#}-->
+<!--        {#                        .then(response => response.json())#}-->
+<!--        {#                        .then(data => {#}-->
+<!--        {#                            if (data.success) {#}-->
+<!--        {#                                messageForm.reset();#}-->
+<!--        {#                            }#}-->
+<!--        {#                        })#}-->
+<!--        {#                        .catch((error) => {#}-->
+<!--        {#                            console.error('Error:', error);#}-->
+<!--        {#                        });#}-->
+<!--        {#                });#}-->
+<!--        {#            });#}-->
+<!--        {#        </script>#}-->
+
+</body>
+</html>
+
+{#<!--    &lt;!&ndash; Добавленная секция для отображения опросов &ndash;&gt;-->#}
+{#<!--    {% for poll in polls %}-->#}
+{#<!--    <div id="poll-{{ poll.id }}" class="poll card">-->#}
+{#<!--        <div class="card-header">-->#}
+{#<!--            Опрос: {{ poll.question }}-->#}
+{#<!--        </div>-->#}
+{#<!--        <div class="card-body">-->#}
+{#<!--            {% if poll.user_voted %}-->#}
+{#<!--            <ul class="list-group">-->#}
+{#<!--                {% for option_id, option in poll.options.items() %}-->#}
+{#<!--                <li class="list-group-item d-flex justify-content-between align-items-center">-->#}
+{#<!--                    {{ option }}-->#}
+{#<!--                    <span class="badge badge-primary badge-pill">{{ poll_results[poll.id][option_id][1]|round(2) }}% ({{ poll_results[poll.id][option_id][0] }} голосов)</span>-->#}
+{#<!--                </li>-->#}
+{#<!--                {% endfor %}-->#}
+{#<!--            </ul>-->#}
+{#<!--            {% else %}-->#}
+{#<!--            <form action="/chats/{{ chat.id }}/polls/{{ poll.id }}/vote" method="post">-->#}
+{#<!--                {% for option_id, option in poll.options.items() %}-->#}
+{#<!--                <div class="form-check">-->#}
+{#<!--                    <input class="form-check-input" type="radio" name="option_id" id="option-{{ option_id }}"-->#}
+{#<!--                           value="{{ option_id }}">-->#}
+{#<!--                    <label class="form-check-label" for="option-{{ option_id }}">-->#}
+{#<!--                        {{ option }}-->#}
+{#<!--                    </label>-->#}
+{#<!--                </div>-->#}
+{#<!--                {% endfor %}-->#}
+{#<!--                &lt;!&ndash; Добавление скрытого поля для номера телефона голосующего &ndash;&gt;-->#}
+{#<!--                <input type="hidden" name="voter_phone_number" value="{{ current_user.phone_number }}">-->#}
+{#<!--                <button type="submit" class="btn btn-primary">Проголосовать</button>-->#}
+{#<!--            </form>-->#}
+{#<!--            {% endif %}-->#}
+{#<!--        </div>-->#}
+{#<!--    </div>-->#}
+{#<!--    {% endfor %}-->#}
+{#<!--    &lt;!&ndash; Конец добавленной секции &ndash;&gt;-->#}
+{#<!--        &lt;!&ndash; Poll creation form &ndash;&gt;-->#}
+{#<!--        <button onclick="document.getElementById('poll-form').style.display='block'">Создать опрос</button>-->#}
+{#<!--        <div id="poll-form" style="display: none;">-->#}
+{#<!--            <input type="hidden" name="creator_phone_number" value="{{ current_user.phone_number }}">-->#}
+{#<!--            <label for="poll-question">Вопрос:</label>-->#}
+{#<!--            <input type="text" id="poll-question" name="question"><br>-->#}
+{#<!--            <div id="poll-options">-->#}
+{#<!--                <label for="pollInput">Варианты ответа:</label>-->#}
+{#<!--                <input type="text" id="pollInput" name="options"><br>-->#}
+{#<!--            </div>-->#}
+{#<!--            <button type="button" onclick="addOption()">Добавить вариант ответа</button>-->#}
+{#<!--            <button type="button" onclick="createPoll()">Создать</button>-->#}
+{#<!--        </div>-->#}
+{#<!--        {% endif %}-->#}
+{#<!--    </div>-->#}
+{#<!--</div>div-->#}
+{##}
+{#<!--// function addOption() {-->#}
+{#<!--    //     const newOption = document.createElement('input');-->#}
+{#<!--    //     newOption.type = 'text';-->#}
+{#<!--    //     newOption.name = 'options';-->#}
+{#<!--    //     newOption.placeholder = 'New poll option';-->#}
+{#<!--    //     document.getElementById('poll-options').appendChild(newOption);-->#}
+{#<!--    // }-->#}
+{#<!--    //-->#}
+{#<!--    // function createPoll() {-->#}
+{#<!--    //     const question = document.getElementById("poll-question").value;-->#}
+{#<!--    //     const optionsNodes = document.getElementsByName("options");-->#}
+{#<!--    //     const options = Array.from(optionsNodes).map(node => node.value);-->#}
+{#<!--    //     if (question === '' || options.some(option => option === '')) {-->#}
+{#<!--    //         alert('Вопрос и варианты ответа не должны быть пустыми.');-->#}
+{#<!--    //         return;-->#}
+{#<!--    //     }-->#}
+{#<!--    //     const pollData = {-->#}
+{#<!--    //         "action": "create_poll",-->#}
+{#<!--    //         "question": question,-->#}
+{#<!--    //         "options": options,-->#}
+{#<!--    //         "creator_phone_number": "{{ current_user.phone_number }}"-->#}
+{#<!--    //     };-->#}
+{#<!--    //     ws.send(JSON.stringify(pollData));-->#}

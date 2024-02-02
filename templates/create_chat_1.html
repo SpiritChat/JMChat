@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: rgba(211, 211, 211, 0.2);
+            font-family: Times New Roman, sans-serif;
+        }
+
+        .container {
+            height: 100%;
+        }
+
+        .new_dialog {
+            font-family: Roboto, serif;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 32px;
+            color: black;
+        }
+
+        .interlocutor-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .interlocutor-info img {
+            border-radius: 50%;
+        }
+
+        /*Добавляет отступ слева от деталей собеседника.*/
+        .interlocutor-details {
+            margin-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            width: 203px;
+            height: 203px;
+            overflow: hidden;
+            margin: 20px auto auto;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* чтобы изображение сохраняло пропорции и вписывалось в контейнер */
+        }
+
+        .profile-picture-overlay {
+            position: relative;
+            display: inline-block;
+        }
+
+        .edit-photo-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: black;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .edit-photo-label:hover {
+            opacity: 1;
+        }
+
+        .profile-picture-overlay:hover .edit-photo-label {
+            opacity: 1;
+        }
+
+        #previewImage {
+            max-width: 100%; /* Установите максимальную ширину в 100%, чтобы изображение не превышало контейнер */
+            max-height: 100%; /* Установите максимальную высоту в 100%, чтобы изображение не превышало контейнер */
+            border-radius: 50%; /* Добавьте закругление углов для сохранения круглой формы */
+        }
+
+        .main_container {
+            width: 537px;
+            margin: auto;
+            text-align: center;
+            align-items: center;
+        }
+
+        .button_ful {
+            display: flex;
+            height: 32px;
+            width: 80px;
+            padding: 0 24px;
+            justify-content: center;
+            align-items: center;
+            align-self: stretch;
+            background-color: #2A88B9;
+            border-radius: 8px;
+            border: 3px #2A88B9;
+        }
+
+        .button_ful:hover,
+        .button_ful:focus,
+        .button_ful:active {
+            background-color: #2A88B9;
+        }
+    </style>
+</head>
+<body>
+<form action="/create_chat" method="post" enctype="multipart/form-data">
+    <div class="container mt-0" style="padding-left: 0">
+        <div class="interlocutor-info mb-0" style="padding-top: 22px; padding-bottom: 22px; padding-left: 0">
+            <div class="interlocutor-details" style="margin-left: 15px; display: flex;">
+                <a style="text-decoration: none; display: inline-block; vertical-align: middle;" href="/home"><h5
+                        class="new_dialog" style="margin-bottom: 0"><img
+                        src="../static/black_back_arrow.png" alt="Картинка" style="vertical-align: middle;"> Новая
+                    группа
+                </h5></a>
+                <form action="/home" method="get" class="search-input">
+                    <input type="text" class="form-control search-input"
+                           style="background-color: #EBEBEB; color: #928F8F; border-radius: 8px; font-size: 12px; margin-left: 40px; margin-right: 40px; width: 400px"
+                           placeholder="Кого добавить в группу?">
+                </form>
+                <button type="submit" class="btn btn-primary button_ful">Создать</button>
+            </div>
+        </div>
+        <hr class="my-0">
+
+        <div class="image-container">
+            <img id="previewImage" src="../static/default.svg" alt="Default Image">
+        </div>
+
+        <div class="main_container">
+            <!-- Форма создания чата -->
+            <div class="form-group">
+                <label for="chat_image" style="cursor: pointer;">Изменить изображение</label>
+                <input type="file" class="form-control" id="chat_image" name="chat_image" style="display: none;"
+                       onchange="changeImage()">
+                <span id="selected_image" style="margin-left: 10px;"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="text" class="form-control" id="chat_name" name="chat_name" placeholder="Название группы"
+                       style="height: 40px" required>
+            </div>
+        </div>
+    </div>
+</form>
+
+</body>
+<script>
+    function changeImage() {
+        var input = document.getElementById('chat_image');
+        var preview = document.getElementById('previewImage');
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            // Если файл не выбран, используйте изображение по умолчанию
+            preview.src = '../static/default.svg';
+        }
+    }
+</script>
+</html>

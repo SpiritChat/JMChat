@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Dialog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: rgba(211, 211, 211, 0.2);
+            font-family: Times New Roman, sans-serif;
+        }
+
+        .container {
+            height: 100%;
+        }
+
+        .user-list {
+            height: calc(50vh - 100px);
+            overflow-y: auto;
+        }
+
+        .user-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-item .user-details {
+            margin-left: 10px;
+        }
+
+        .new_dialog {
+            font-family: Roboto, serif;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 32px;
+            color: black;
+        }
+
+        .interlocutor-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .interlocutor-info img {
+            border-radius: 50%;
+        }
+
+        /*Добавляет отступ слева от деталей собеседника.*/
+        .interlocutor-details {
+            margin-left: 10px;
+        }
+
+        .status {
+            font-family: Roboto, serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px;
+            color: #928F8F;
+        }
+
+        .full-width-button {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            border: none;
+            background: none;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-0" style="padding-left: 0">
+    <div class="interlocutor-info mb-0" style="padding-top: 22px; padding-bottom: 22px; padding-left: 0">
+        <div class="interlocutor-details" style="margin-left: 15px; display: flex;">
+            <a style="text-decoration: none; display: inline-block; vertical-align: middle;" href="/home"><h5
+                    class="new_dialog" style="margin-bottom: 0"><img
+                    src="../static/black_back_arrow.png" alt="Картинка" style="vertical-align: middle;"> Новый диалог
+            </h5></a>
+            <form onsubmit="search_create_dialog(event)" class="search-input-create-dialog"
+                  id="search-input-create-dialog">
+                <input type="text" class="form-control search-input"
+                       style="background-color: #EBEBEB; color: #928F8F; border-radius: 8px; font-size: 12px; margin-left: 50px; width: 450px"
+                       placeholder="С кем начать диалог?"
+                       oninput="search_create_dialog(event)">
+            </form>
+        </div>
+    </div>
+    <hr class="my-0">
+
+    {#    <form action="/create_dialog" method="post" class="mb-3">#}
+    {#        <div class="input-group">#}
+    {#            <input type="text" class="form-control" id="search_query" name="search_query" placeholder="Поиск">#}
+    {#            <button class="btn btn-primary" type="submit">Поиск</button>#}
+    {#        </div>#}
+    {#    </form>#}
+
+    <!-- Результаты поиска -->
+    <div id="search-results-create-dialog"></div>
+
+    <div id="create-dialog">
+        {% for user in users %}
+            <form id="dialogForm" action="/create_dialog/{{ user['nickname'] }}" method="post"
+                  class="ms-auto start-dialog-form">
+                <div class="interlocutor-info mb-0 border-bottom" style="padding-top: 12px; padding-bottom: 12px">
+                    <button type="submit" class="full-width-button">
+                        <img src="/profile/picture/{{ user['true_nickname'] }}" alt="Interlocutor's profile picture"
+                             width="50" height="50">
+                        <div class="interlocutor-details" style="margin-left: 8px">
+                            <h5 class="username" style="margin-bottom: 0"><a
+                                    href="/profile/{{ user['phone_number'] }}"
+                                    style="text-decoration: none; color: black;"> {{ user['phone_number'] }} </a>
+                            </h5>
+                            <small class="status" style="padding-left: 5px">{{ user['status'] }}</small>
+                        </div>
+                        {#                    <button type="submit" class="btn btn-success" style="margin-left: 700px">Начать диалог</button>#}
+                        <hr class="my-0">
+                    </button>
+                </div>
+            </form>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

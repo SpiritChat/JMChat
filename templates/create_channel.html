@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Channel</title>
+    <link rel="stylesheet" type="text/css" href="/static/CreateChannelStyle.css">
+</head>
+<body>
+    <h1>Create a New Channel</h1>
+    <form method="post">
+        <input type="text" name="channel_name" placeholder="Enter Channel Name" required>
+        <input type="submit" value="Create Channel">
+    </form>
+    <h3>Your Channels</h3>
+    {% for channel in channels %}
+        <div>
+            <h4>{{ channel.name }}</h4>
+            <a href="/channels/{{ channel.id }}">View Channel</a>
+        </div>
+    {% endfor %}
+    <button onclick="window.location.href='/'">Вернуться назад</button>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>JMChat Login/Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../static/registration.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .headline {
+            font-size: 22px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div style="height: 60px"></div>
+    <a style="text-decoration: none; visibility: hidden" class="back">
+        <p class="back"><img src="../static/back-arrow.png" style="align-self: center" alt="Картинка"> Назад </p>
+    </a>
+    <img src="../profile_pictures/logo_jm.png" alt="Картинка" style="align-self: center" width="540" height="170">
+    <br>
+    <h4 class="headline">Зарегистрируйтесь или войдите в свой аккаунт</h4>
+    <br>
+    <form method="get" action="/login" id="form" style="width: 540px">
+        <button type="submit" class="btn btn-primary button" id="loginButton">Войти</button>
+    </form>
+    <br>
+    <form method="post" action="/registration" id="form" style="width: 540px">
+        <button type="submit" class="btn btn-primary button_register" id="loginButton">Регистрация</button>
+    </form>
+    <br>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

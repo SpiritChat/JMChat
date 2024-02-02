@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    padding: 20px;
+}
+
+h1 {
+    color: #34b7f1;
+    text-align: center;
+}
+
+a {
+    color: #34b7f1;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input[type="text"], input[type="file"] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    background-color: #34b7f1;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+#chat-history div {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#chat-history div h4 {
+    color: #34b7f1;
+    margin: 0;
+}
+
+#chat-history div p {
+    margin: 5px 0;
+}
+
+#chat-history div p small {
+    color: #888;
+}
+
+#chat-history div p a {
+    color: #34b7f1;
+    text-decoration: none;
+}
+
+#chat-history div p a:hover {
+    text-decoration: underline;
+}
+
+/* Новые стили */
+#container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Полная высота страницы */
+}
+
+#messages-container {
+    flex-grow: 1; /* Растягивает блок на всё доступное пространство */
+    overflow: auto; /* Добавляет прокрутку, если содержимое превышает высоту блока */
+}
+
+#message-form-container {
+    flex-shrink: 0; /* Предотвращает сжатие блока */
+}

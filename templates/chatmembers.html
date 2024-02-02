@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Участники чата {{ chat.chat_name }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/GroupStyle.css">
+</head>
+<body>
+    <div id="container">
+        <h1>Участники чата {{ chat.chat_name }}</h1> <!-- Здесь отображается название чата -->
+        <!-- Ссылка на страницу чата -->
+        <a href="/chat/{{ chat.id }}">Вернуться в чат</a>
+
+        <!-- Форма поиска -->
+        <form action="/chat/{{ chat.id }}/members/search" method="get">
+            <input type="text" id="search_user" name="search_user" placeholder="Поиск по имени, фамилии, никнейму, номеру телефона...">
+            <input type="submit" value="Поиск">
+        </form>
+
+        <!-- Результаты поиска -->
+        {% if search_query is not none and search_query != "" and search_results is not none %}
+
+            <ul>
+                {% for user in search_results %}
+                    <li>
+                        {{ user.first_name }} {{ user.last_name }} ({{ user.phone_number }})
+                        <!-- Кнопка удаления участника (видна только для админа) -->
+                        {% if chat.owner_phone_number == current_user.phone_number %}
+                            <form action="/chats/{{ chat.id }}/members/{{ user.phone_number }}/delete" method="post">
+                                <button type="submit">Удалить участника</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <h2>Все участники чата:</h2>
+        <!-- Список участников -->
+        <ul>
+            {% for member in members|sort(attribute='first_name') %}
+                <li>
+                    {% if member.phone_number == chat.owner_phone_number %}
+                        <strong>Админ: {{ member.first_name }} {{ member.last_name }} ({{ member.phone_number }})</strong>
+                    {% else %}
+                        {{ member.first_name }} {{ member.last_name }} ({{ member.phone_number }})
+                    {% endif %}
+
+                    <!-- Кнопка удаления участника (видна только для админа) -->
+                    {% if chat.owner_phone_number == current_user.phone_number and member.phone_number != chat.owner_phone_number %}
+                        <form action="/chats/{{ chat.id }}/members/{{ member.phone_number }}/delete" method="post">
+                            <button type="submit">Удалить участника</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

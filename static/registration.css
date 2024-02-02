@@ -1,0 +1,170 @@
+.container {
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.headline {
+    font-family: Roboto, serif;
+    font-size: 24px;
+    text-align: center;
+    font-style: normal;
+    align-self: center;
+    font-weight: 400;
+    line-height: 32px;
+    padding: 0;
+    margin: 0;
+}
+
+.under_headline {
+    font-family: Roboto, serif;
+    font-size: 14px;
+    text-align: center;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+    align-self: center;
+    padding: 0;
+    margin: 0;
+}
+
+.button {
+    font-family: Roboto, serif;
+    display: flex;
+    height: 53px;
+    width: 540px;
+    padding: 0 24px;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    background-color: #2A88B9;
+    border-radius: 8px;
+    border: 3px #2A88B9;
+}
+
+.button_register {
+    font-family: Roboto, serif;
+    display: flex;
+    height: 53px;
+    width: 540px;
+    padding: 0 24px;
+    justify-content: center;
+    align-items: center;
+    align-self: stretch;
+    color: #2A88B9;
+    background-color: white;
+    border-radius: 8px;
+    border: 3px solid #2A88B9;
+}
+
+.button_register:hover,
+.button_register:focus,
+.button_register:active {
+    color: #2A88B9;
+    background-color: white;
+    border-radius: 10px;
+    border: 3px solid #2A88B9;
+}
+
+.button:disabled {
+    background-color: #2A88B9; /* Цвет фона для disabled кнопки */
+}
+
+.button:hover,
+.button:focus,
+.button:active {
+    background-color: #2A88B9;
+}
+
+.back {
+    display: flex;
+    font-family: Roboto, serif;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 22px;
+    color: #928F8F;
+    text-decoration: none;
+    align-self: self-start;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-group {
+    align-self: self-start;
+    width: 540px;
+}
+
+.small_gap {
+    margin: 7px 0;
+}
+
+.error {
+    width: 540px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto auto 10px;
+    align-self: center;
+}
+
+.unstyled-list {
+    font-family: Roboto, serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16px;
+    text-align: left;
+    align-self: self-start;
+    margin-bottom: 3px;
+}
+
+.code-input {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.code-box {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.code-container {
+    display: flex;
+    gap: 10px;
+}
+
+.code-digit {
+    width: 50px;
+    height: 67px;
+    border: 1px solid #928F8F;
+    text-align: center;
+    font-size: 24px;
+    line-height: 38px;
+    gap: 10px;
+    border-radius: 4px;
+}
+
+#forgetPassword {
+    text-decoration: none;
+    font-family: Roboto, serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px;
+    text-align: center;
+    color: #000;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}

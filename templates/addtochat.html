@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить в чат</title>
+    <link rel="stylesheet" type="text/css" href="/static/GroupStyle.css">
+</head>
+<body>
+    <div id="container">
+        <h1>Добавить участников в {{ chat.chat_name }}</h1> <!-- Здесь отображается название чата -->
+        <!-- Ссылка на страницу чата -->
+        <a href="/chat/{{ chat.id }}">Вернуться в чат</a>
+
+
+        <form action="/chat/{{ chat.id }}/members/add" method="get">
+            <input type="text" id="search-input" name="search_query" placeholder="Поиск по имени, фамилии, номеру телефона, никнейму">
+            <button type="submit">Поиск</button>
+        </form>
+
+
+        <div id="members-container">
+            <ul id="user-list">
+                {% for user in users %}
+                <div>
+                    <h4>{{ user.first_name }} {{ user.last_name }} ({{ user.phone_number }})</h4>
+                    {% if user.phone_number not in members_phone_numbers and user.phone_number != chat.owner_phone_number %}
+                    <form action="/chat/{{ chat.id }}/members/{{ user.phone_number }}/add" method="post">
+                        <button type="submit">Пригласить</button>
+                    </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
