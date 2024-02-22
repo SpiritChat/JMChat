@@ -771,7 +771,7 @@ function search(event) {
 
 document.addEventListener('DOMContentLoaded', function () {
     const currentUserId = "{{ current_user.id }}";
-    const socket = new WebSocket(`ws://127.0.0.1:8000/ws/main_page/${currentUserId}/`);
+    const socket = new WebSocket(`ws://127.0.0.1:8080/ws/main_page/${currentUserId}/`);
 
     socket.onopen = () => console.log("WebSocket connection opened for left panel");
     socket.onclose = () => console.log("WebSocket connection closed for left panel");
@@ -1202,7 +1202,7 @@ function handleSendMessageResponse(data) {
             const currentUserId = "{{ current_user.id }}";
 
             // Глобальное соединение WebSocket
-            const globalSocket = new WebSocket(`ws://127.0.0.1:8000/ws/global/${currentUserId}/`);
+            const globalSocket = new WebSocket(`ws://127.0.0.1:8080/ws/global/${currentUserId}/`);
 
             globalSocket.onopen = () => {
                 console.log("Global WebSocket connection opened");
@@ -1250,7 +1250,7 @@ function handleSendMessageResponse(data) {
             }
 
             // Локальное соединение WebSocket для левой панели
-            const socket = new WebSocket(`ws://127.0.0.1:8000/ws/main_page/${currentUserId}/`);
+            const socket = new WebSocket(`ws://127.0.0.1:8080/ws/main_page/${currentUserId}/`);
 
             socket.onopen = () => {
                 console.log("WebSocket connection opened for left panel");
@@ -1616,7 +1616,7 @@ function handleSendMessageResponse(data) {
 
         const cookie = document.cookie.split('; ').find(row => row.startsWith('access_token='));
         const access_token = cookie ? cookie.split('=')[1] : null;
-        ws = new WebSocket(`ws://127.0.0.1:8000/ws/dialogs/${dialogId}/`);
+        ws = new WebSocket(`ws://127.0.0.1:8080/ws/dialogs/${dialogId}/`);
 
         ws.onopen = function (event) {
             console.log("WebSocket connection opened.", event);
@@ -2316,7 +2316,7 @@ forwardButton.onclick = function () {
 
         const cookie = document.cookie.split('; ').find(row => row.startsWith('access_token='));
         const access_token = cookie ? cookie.split('=')[1] : null;
-        var ws = new WebSocket(`ws://127.0.0.1:8000/ws/chats/${chatId}/`);
+        var ws = new WebSocket(`ws://127.0.0.1:8080/ws/chats/${chatId}/`);
 
         ws.onopen = function (event) {
             console.log("WebSocket connection opened.", event);

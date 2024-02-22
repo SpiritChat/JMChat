@@ -1625,7 +1625,7 @@ async def confirm_code(request: Request, email: str = Form(...), db: Session = D
         db.add(new_registration)
         db.commit()
 
-        # send_email(email, code)
+        send_email(email, code)
         print(code)
         response = f"""
             <html>
@@ -1866,7 +1866,7 @@ async def confirm_code_reset_password(request: Request, email: str = Form(...), 
         db.add(new_registration)
         db.commit()
 
-        # send_email(email, code)
+        send_email(email, code)
         print(code)
         response = f"""
             <html>
@@ -2088,7 +2088,7 @@ def change_password(request: NicknameRequest, db: Session = Depends(get_db)):
     db.add(new_registration)
     db.commit()
 
-    # send_email(email, code)
+    send_email(email, code)
     print(code)
 
 
@@ -2128,8 +2128,7 @@ def send_email_code(request: EmailRequest, db: Session = Depends(get_db)):
         db.add(new_registration)
         db.commit()
 
-        # send_email(email, code)
-
+        send_email(email, code)
         print(code)
 
 
